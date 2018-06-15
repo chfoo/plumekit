@@ -38,7 +38,12 @@ class Registry {
             case "Legacy multi-byte Chinese (traditional) encodings":
                 return new Big5Encoder();
             case "Legacy multi-byte Japanese encodings":
-                throw new NotImplementedException();
+                switch (name) {
+                    case "EUC-JP":
+                        return new EUCJPEncoder();
+                    default:
+                        throw new NotImplementedException();
+                }
             case "Legacy multi-byte Korean encodings":
                 throw new NotImplementedException();
             default:
@@ -71,7 +76,12 @@ class Registry {
             case "Legacy multi-byte Chinese (traditional) encodings":
                 return new Big5Decoder();
             case "Legacy multi-byte Japanese encodings":
-                throw new NotImplementedException();
+                switch (name) {
+                    case "EUC-JP":
+                        return new EUCJPDecoder();
+                    default:
+                        throw new NotImplementedException();
+                }
             case "Legacy multi-byte Korean encodings":
                 throw new NotImplementedException();
             default:
