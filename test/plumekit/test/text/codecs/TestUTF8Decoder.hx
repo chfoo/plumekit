@@ -47,7 +47,7 @@ class TestUTF8Decoder {
         outputBuffer.add(decoder.flush());
         var output = outputBuffer.toString();
 
-        trace(output);
+        // trace(output);
 
         Assert.isTrue(output.indexOf("THE END    ") >= 0);
         Assert.equals("|\n", output.substr(output.length - 2, 2));
