@@ -1,7 +1,8 @@
 package plumekit.test.text.codecs;
 
-import utest.Assert;
 import plumekit.Exception;
+import plumekit.text.codec.Big5Decoder;
+import plumekit.text.codec.Big5Encoder;
 import plumekit.text.codec.GB18030Decoder;
 import plumekit.text.codec.GB18030Encoder;
 import plumekit.text.codec.Registry;
@@ -11,6 +12,7 @@ import plumekit.text.codec.UTF8Decoder;
 import plumekit.text.codec.UTF8Encoder;
 import plumekit.text.codec.XUserDefinedDecoder;
 import plumekit.text.codec.XUserDefinedEncoder;
+import utest.Assert;
 
 
 class TestRegistry {
@@ -32,7 +34,7 @@ class TestRegistry {
         Assert.is(Registry.getEncoderHandler("utf8"), UTF8Encoder);
         Assert.is(Registry.getEncoderHandler("latin2"), SingleByteEncoder);
         Assert.is(Registry.getEncoderHandler("gbk"), GB18030Encoder);
-        // Assert.is(Registry.getEncoderHandler("big5"), Todo);
+        Assert.is(Registry.getEncoderHandler("big5"), Big5Encoder);
         // Assert.is(Registry.getEncoderHandler("shift_jis"), Todo);
         // Assert.is(Registry.getEncoderHandler("euc-kr"), Todo);
         Assert.is(Registry.getEncoderHandler("x-user-defined"), XUserDefinedEncoder);
@@ -54,7 +56,7 @@ class TestRegistry {
         Assert.is(Registry.getDecoderHandler("utf8"), UTF8Decoder);
         Assert.is(Registry.getDecoderHandler("latin2"), SingleByteDecoder);
         Assert.is(Registry.getDecoderHandler("gbk"), GB18030Decoder);
-        // Assert.is(Registry.getDecoderHandler("big5"), Todo);
+        Assert.is(Registry.getDecoderHandler("big5"), Big5Decoder);
         // Assert.is(Registry.getDecoderHandler("shift_jis"), Todo);
         // Assert.is(Registry.getDecoderHandler("euc-kr"), Todo);
         Assert.is(Registry.getDecoderHandler("x-user-defined"), XUserDefinedDecoder);
