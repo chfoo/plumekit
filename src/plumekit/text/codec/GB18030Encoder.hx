@@ -37,7 +37,7 @@ class GB18030Encoder implements Handler {
         }
 
         if (pointer != CodecTools.INT_NULL) {
-            var lead = Std.int(pointer / 190) + 0x81;
+            var lead = pointer.div(190) + 0x81;
             var trail = pointer % 190;
             var offset = trail < 0x3F ? 0x40 : 0x41;
 
@@ -49,11 +49,11 @@ class GB18030Encoder implements Handler {
         }
 
         pointer = getIndexRangesPointer(codePoint);
-        var byte1 = Std.int(pointer / (10 * 126 * 10));
+        var byte1 = pointer.div(10 * 126 * 10);
         pointer %= 10 * 126 * 10;
-        var byte2 = Std.int(pointer / (10 * 126));
+        var byte2 = pointer.div(10 * 126);
         pointer %= 10 * 126;
-        var byte3 = Std.int(pointer / 10);
+        var byte3 = pointer.div(10);
         var byte4 = pointer % 10;
 
         return Result.Tokens([byte1 + 0x81, byte2 + 0x30, byte3 + 0x81, byte4 + 0x30]);

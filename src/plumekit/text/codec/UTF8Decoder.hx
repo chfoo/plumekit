@@ -1,5 +1,7 @@
 package plumekit.text.codec;
 
+using plumekit.text.codec.CodecTools;
+
 
 class UTF8Decoder implements Handler {
     var codePoint = 0;
@@ -21,7 +23,7 @@ class UTF8Decoder implements Handler {
 
         if (bytesNeeded == 0) {
             return processZeroBytesNeeded(byte);
-        } else if (!(lowerBoundary <= byte && byte <= upperBoundary)) {
+        } else if (!(byte.isInRange(lowerBoundary, upperBoundary))) {
             codePoint = bytesNeeded = bytesSeen = 0;
             lowerBoundary = 0x80;
             upperBoundary = 0xbf;
@@ -46,12 +48,12 @@ class UTF8Decoder implements Handler {
     }
 
     function processZeroBytesNeeded(byte:Int) {
-        if (0x00 <= byte && byte <=0x7f) {
+        if (byte.isInRange(0x00, 0x7f)) {
             return Result.Token(byte);
-        } else if (0xc2 <= byte && byte <=0xdf) {
+        } else if (byte.isInRange(0xc2, 0xdf)) {
             bytesNeeded = 1;
             codePoint = byte & 0x1f;
-        } else if (0xe0 <= byte && byte <=0xef) {
+        } else if (byte.isInRange(0xe0, 0xef)) {
             if (byte == 0xe0) {
                 lowerBoundary = 0xa0;
             } else if (byte == 0xed) {
@@ -60,7 +62,7 @@ class UTF8Decoder implements Handler {
 
             bytesNeeded = 2;
             codePoint = byte & 0xf;
-        } else if (0xf0 <= byte && byte <= 0xf4) {
+        } else if (byte.isInRange(0xf0,  0xf4)) {
             if (byte == 0xf0) {
                 lowerBoundary = 0x90;
             } else if (byte == 0xf4) {

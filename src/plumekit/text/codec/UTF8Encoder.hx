@@ -17,13 +17,13 @@ class UTF8Encoder implements Handler {
         var count;
         var offset;
 
-        if (0x80 <= codePoint && codePoint <= 0x7ff) {
+        if (codePoint.isInRange(0x80, 0x7ff)) {
             count = 1;
             offset = 0xc0;
-        } else if (0x800 <= codePoint && codePoint <= 0xffff) {
+        } else if (codePoint.isInRange(0x800, 0xffff)) {
             count = 2;
             offset = 0xe0;
-        } else if (0x10000 <= codePoint && codePoint <= 0x10FFFF) {
+        } else if (codePoint.isInRange(0x10000, 0x10FFFF)) {
             count = 3;
             offset = 0xf0;
         } else {

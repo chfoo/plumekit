@@ -38,7 +38,7 @@ class GB18030Decoder implements Handler {
             return Result.Token(byte);
         } else if (byte == 0x80) {
             return Result.Token(0x20ac);
-        } else if (byte >= 0x81 && byte <= 0xFE) {
+        } else if (byte.isInRange(0x81, 0xFE)) {
             first = byte;
             return Result.Continue;
         }
@@ -74,7 +74,7 @@ class GB18030Decoder implements Handler {
     }
 
     function processSecondNotZero(stream:Stream, byte:Int) {
-        if (byte >= 0x81 && byte <= 0xFE) {
+        if (byte.isInRange(0x81, 0xFE)) {
             third = byte;
             return Result.Continue;
         }
@@ -87,7 +87,7 @@ class GB18030Decoder implements Handler {
     }
 
     function processFirstNotZero(stream:Stream, byte:Int) {
-        if (byte >= 0x30 && byte <= 0x39) {
+        if (byte.isInRange(0x30, 0x39)) {
             second = byte;
             return Result.Continue;
         }
@@ -97,7 +97,7 @@ class GB18030Decoder implements Handler {
         first = 0;
         var offset = byte < 0x7f ? 0x40 : 0x41;
 
-        if (byte >= 0x40 && byte <= 0x7E || byte >= 0x80 && byte <= 0xFE) {
+        if (byte.isInRange(0x40, 0x7E) || byte.isInRange(0x80, 0xFE)) {
             pointer = (lead - 0x81) * 190 + (byte - offset);
         }
 
