@@ -41,6 +41,8 @@ class Registry {
                 switch (name) {
                     case "EUC-JP":
                         return new EUCJPEncoder();
+                    case "ISO-2022-JP":
+                        return new ISO2022JPEncoder();
                     default:
                         throw new NotImplementedException();
                 }
@@ -79,6 +81,8 @@ class Registry {
                 switch (name) {
                     case "EUC-JP":
                         return new EUCJPDecoder();
+                    case "ISO-2022-JP":
+                        return new ISO2022JPDecoder();
                     default:
                         throw new NotImplementedException();
                 }
