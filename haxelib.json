@@ -1,0 +1,16 @@
+{
+  "name": "plumekit",
+  "url" : "https://github.com/chfoo/plumekit/",
+  "license": "GPL",
+  "tags": ["cross"],
+  "description": "Web data format and protocol library",
+  "version": "0.1.0",
+  "classPath": "src/",
+  "releasenote": "Initial release",
+  "contributors": ["chfoo"],
+  "dependencies": {
+    "commonbox": "",
+    "exception": "1.0.2",
+    "unifill": "0.4.1"
+  }
+}
