@@ -43,8 +43,10 @@ class Registry {
                         return new EUCJPEncoder();
                     case "ISO-2022-JP":
                         return new ISO2022JPEncoder();
+                    case "Shift_JIS":
+                        return new ShiftJISEncoder();
                     default:
-                        throw new NotImplementedException();
+                        throw "Shouldn't reach here";
                 }
             case "Legacy multi-byte Korean encodings":
                 throw new NotImplementedException();
@@ -83,8 +85,10 @@ class Registry {
                         return new EUCJPDecoder();
                     case "ISO-2022-JP":
                         return new ISO2022JPDecoder();
+                    case "Shift_JIS":
+                        return new ShiftJISDecoder();
                     default:
-                        throw new NotImplementedException();
+                        throw "Shouldn't reach here";
                 }
             case "Legacy multi-byte Korean encodings":
                 throw new NotImplementedException();
