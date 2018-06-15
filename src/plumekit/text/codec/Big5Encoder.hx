@@ -10,7 +10,8 @@ class Big5Encoder implements Handler {
     var index:IMap<Int,Int>;
 
     public function new(gbkFlag:Bool = false) {
-        index = IndexLoader.getCodePointToPointerMap("big5");
+        index = IndexLoader.getCodePointToPointerMap("big5",
+            IndexLoaderFilter.Big5);
     }
 
     public function process(stream:Stream, codePoint:Int):Result {
