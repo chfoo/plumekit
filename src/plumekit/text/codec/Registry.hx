@@ -52,10 +52,8 @@ class Registry {
                 return new EUCKREncoder();
             default:
                 switch (name) {
-                    case "replacement":
-                        throw new ValueException('Cannot use encoding $name.');
-                    case "UTF-16BE" | "UTF-16LE":
-                        throw new ValueException('No encoder intentionally for encoding $name.');
+                    case "replacement" | "UTF-16BE" | "UTF-16LE":
+                        throw new ValueException('Encoding $name does not have an associated encoder.');
                     case "x-user-defined":
                         return new XUserDefinedEncoder();
                     default:
@@ -95,9 +93,9 @@ class Registry {
             default:
                 switch (name) {
                     case "replacement":
-                        throw new NotImplementedException();
+                        return new ReplacementDecoder();
                     case "UTF-16BE" | "UTF-16LE":
-                        throw new NotImplementedException();
+                        return new UTF16Decoder(name == "UTF-16BE");
                     case "x-user-defined":
                         return new XUserDefinedDecoder();
                     default:

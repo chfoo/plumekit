@@ -4,6 +4,9 @@ package plumekit.text.codec;
 class ReplacementDecoder implements Handler {
     var errorReturned = false;
 
+    public function new() {
+    }
+
     public function process(stream:Stream, byte:Int):Result {
         if (byte == Stream.END_OF_STREAM) {
             return Result.Finished;
