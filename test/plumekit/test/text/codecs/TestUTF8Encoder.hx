@@ -1,7 +1,7 @@
 package plumekit.test.text.codecs;
 
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.UTF8Encoder;
 
 
@@ -11,7 +11,7 @@ class TestUTF8Encoder {
 
     public function testSimple() {
         var encoderHandler = new UTF8Encoder();
-        var encoder = new Encoder(encoderHandler);
+        var encoder = new EncoderRunner(encoderHandler);
 
         var resultData = encoder.encode("Hello world! 💾");
 
@@ -20,7 +20,7 @@ class TestUTF8Encoder {
 
     public function testBoundary() {
         var encoderHandler = new UTF8Encoder();
-        var encoder = new Encoder(encoderHandler);
+        var encoder = new EncoderRunner(encoderHandler);
 
         var resultData = encoder.encode(
             "\u{0000}\u{007f}" +

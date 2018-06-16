@@ -6,7 +6,7 @@ import haxe.io.Eof;
 import haxe.Resource;
 import utest.Assert;
 import plumekit.bindata.BaseEncoder;
-import plumekit.text.codec.Decoder;
+import plumekit.text.codec.DecoderRunner;
 import plumekit.text.codec.UTF8Decoder;
 
 
@@ -16,7 +16,7 @@ class TestUTF8Decoder {
 
     public function testSimple() {
         var decoderHandler = new UTF8Decoder();
-        var decoder = new Decoder(decoderHandler);
+        var decoder = new DecoderRunner(decoderHandler);
 
         var result = decoder.decode(
             BaseEncoder.base16decode("48656c6c6f20776f726c642120f09f92be", true));
@@ -26,7 +26,7 @@ class TestUTF8Decoder {
 
     public function testTestFile() {
         var decoderHandler = new UTF8Decoder();
-        var decoder = new Decoder(decoderHandler);
+        var decoder = new DecoderRunner(decoderHandler);
         var sourceInput = new BytesInput(Resource.getBytes("test/samples/UTF-8-test.txt"));
         var outputBuffer = new StringBuf();
 

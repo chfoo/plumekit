@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.Big5Encoder;
 
 
@@ -21,7 +21,7 @@ class TestBig5Encoder {
         bytes.set(6, 0xD0);
 
         var handler = new Big5Encoder();
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode(" ︾一灩")));
     }

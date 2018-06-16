@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.ShiftJISEncoder;
 
 
@@ -21,7 +21,7 @@ class TestShiftJISEncoder {
         bytes.set(6, 0x40);
 
         var handler = new ShiftJISEncoder();
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode(" 、あ髜")));
     }

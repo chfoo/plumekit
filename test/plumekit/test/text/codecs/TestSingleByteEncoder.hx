@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.SingleByteEncoder;
 import plumekit.text.TextExceptions;
 
@@ -22,14 +22,14 @@ class TestSingleByteEncoder {
         bytes.set(7, 0xff); // ÿ
 
         var handler = new SingleByteEncoder("windows-1252");
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode("\u0000 Aa€\u0081Àÿ")));
     }
 
     public function testException() {
         var handler = new SingleByteEncoder("windows-1252");
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.raises(function () {
             encoder.encode("💩");

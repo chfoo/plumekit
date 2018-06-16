@@ -10,7 +10,7 @@ class Registry {
     static var labelToNameMap:Map<String,String>;
     static var nameInfoMap:Map<String,EncodingNameInfo>;
 
-    public static function labelToEncodingName(label:String):String {
+    public static function getEncodingName(label:String):String {
         initMaps();
 
         var normalizedLabel = label.trim().toLowerCase();
@@ -22,10 +22,19 @@ class Registry {
         }
     }
 
+    public static function getOutputEncodingName(encodingName:String):String {
+        switch (encodingName) {
+            case "replacement" | "UTF-16BE" | "UTF-16LE":
+                return "UTF-8";
+            default:
+                return encodingName;
+        }
+    }
+
     public static function getEncoderHandler(label:String):Handler {
         initMaps();
 
-        var name = labelToEncodingName(label);
+        var name = getEncodingName(label);
         var heading = nameInfoMap.get(name).heading;
 
         switch (heading) {
@@ -65,7 +74,7 @@ class Registry {
     public static function getDecoderHandler(label:String):Handler {
         initMaps();
 
-        var name = labelToEncodingName(label);
+        var name = getEncodingName(label);
         var heading = nameInfoMap.get(name).heading;
 
         switch (heading) {
@@ -115,14 +124,14 @@ class Registry {
 
     public static function getEncoder(encoding:String = "utf-8", ?errorMode:ErrorMode):Encoder {
         var encoderHandler = Registry.getEncoderHandler(encoding);
-        var encoder = new Encoder(encoderHandler, errorMode);
+        var encoder = new EncoderRunner(encoderHandler, errorMode);
 
         return encoder;
     }
 
     public static function getDecoder(encoding:String = "utf-8", ?errorMode:ErrorMode):Decoder {
         var decoderHandler = Registry.getDecoderHandler(encoding);
-        var decoder = new Decoder(decoderHandler, errorMode);
+        var decoder = new DecoderRunner(decoderHandler, errorMode);
 
         return decoder;
     }

@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Decoder;
+import plumekit.text.codec.DecoderRunner;
 import plumekit.text.codec.EUCJPDecoder;
 
 
@@ -22,7 +22,7 @@ class TestEUCJPDecoder {
         bytes.set(7, 0xA1);
 
         var handler = new EUCJPDecoder();
-        var decoder = new Decoder(handler);
+        var decoder = new DecoderRunner(handler);
 
         Assert.equals(" 、亜丂", decoder.decode(bytes));
     }

@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.EUCKREncoder;
 
 
@@ -21,7 +21,7 @@ class TestEUCKREncoder {
         bytes.set(6, 0xDC);
 
         var handler = new EUCKREncoder();
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode(" 、ㄱ￦")));
     }

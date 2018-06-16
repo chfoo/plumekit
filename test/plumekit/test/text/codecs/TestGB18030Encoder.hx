@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.TextExceptions;
 import plumekit.text.codec.GB18030Encoder;
 
@@ -22,7 +22,7 @@ class TestGB18030Encoder {
         bytes.set(6, 0x30);
 
         var handler = new GB18030Encoder();
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode(" 丂︔")));
     }
@@ -36,14 +36,14 @@ class TestGB18030Encoder {
         bytes.set(4, 0xF0);
 
         var handler = new GB18030Encoder(true);
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode(" 丂忦")));
     }
 
     public function testEncodeGBKError() {
         var handler = new GB18030Encoder(true);
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
         Assert.raises(encoder.encode.bind(" 丂︔"), EncodingException);
     }
 }

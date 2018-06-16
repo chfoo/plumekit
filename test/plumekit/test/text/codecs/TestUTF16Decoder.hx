@@ -6,7 +6,7 @@ import haxe.io.Eof;
 import haxe.Resource;
 import utest.Assert;
 import plumekit.bindata.BaseEncoder;
-import plumekit.text.codec.Decoder;
+import plumekit.text.codec.DecoderRunner;
 import plumekit.text.codec.UTF16Decoder;
 
 
@@ -16,7 +16,7 @@ class TestUTF16Decoder {
 
     public function testlittleEndian() {
         var decoderHandler = new UTF16Decoder();
-        var decoder = new Decoder(decoderHandler);
+        var decoder = new DecoderRunner(decoderHandler);
 
         var result = decoder.decode(
             BaseEncoder.base16decode(
@@ -28,7 +28,7 @@ class TestUTF16Decoder {
 
     public function testBigEndian() {
         var decoderHandler = new UTF16Decoder(true);
-        var decoder = new Decoder(decoderHandler);
+        var decoder = new DecoderRunner(decoderHandler);
 
         var result = decoder.decode(
             BaseEncoder.base16decode(

@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Decoder;
+import plumekit.text.codec.DecoderRunner;
 import plumekit.text.codec.GB18030Decoder;
 
 
@@ -21,7 +21,7 @@ class TestGB18030Decoder {
         bytes.set(6, 0x30);
 
         var handler = new GB18030Decoder();
-        var decoder = new Decoder(handler);
+        var decoder = new DecoderRunner(handler);
 
         Assert.equals(" 丂︔", decoder.decode(bytes));
     }

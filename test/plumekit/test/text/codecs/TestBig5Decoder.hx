@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Decoder;
+import plumekit.text.codec.DecoderRunner;
 import plumekit.text.codec.Big5Decoder;
 
 
@@ -21,7 +21,7 @@ class TestBig5Decoder {
         bytes.set(6, 0xD0);
 
         var handler = new Big5Decoder();
-        var decoder = new Decoder(handler);
+        var decoder = new DecoderRunner(handler);
 
         Assert.equals(" ︾一灩", decoder.decode(bytes));
     }

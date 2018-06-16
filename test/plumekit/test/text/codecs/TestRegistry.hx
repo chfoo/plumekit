@@ -29,14 +29,19 @@ class TestRegistry {
     }
 
     public function testLabelToEncodingName() {
-        Assert.equals("UTF-8", Registry.labelToEncodingName("Utf8"));
-        Assert.equals("windows-1252", Registry.labelToEncodingName("latin1"));
+        Assert.equals("UTF-8", Registry.getEncodingName("Utf8"));
+        Assert.equals("windows-1252", Registry.getEncodingName("latin1"));
     }
 
     public function testLabelToEncodingNameNotFound() {
         Assert.raises(function () {
-            Registry.labelToEncodingName("invalid");
+            Registry.getEncodingName("invalid");
         }, ValueException);
+    }
+
+    public function testLabelToEncodingOutputName() {
+        Assert.equals("UTF-8", Registry.getOutputEncodingName("UTF-8"));
+        Assert.equals("UTF-8", Registry.getOutputEncodingName("UTF-16BE"));
     }
 
     public function testGetEncoderHandler() {

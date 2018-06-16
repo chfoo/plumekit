@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Encoder;
+import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.ISO2022JPEncoder;
 
 
@@ -27,7 +27,7 @@ class TestISO2022JPEncoder {
         bytes.set(12, 0x42);
 
         var handler = new ISO2022JPEncoder();
-        var encoder = new Encoder(handler);
+        var encoder = new EncoderRunner(handler);
 
         Assert.equals(0, bytes.compare(encoder.encode(" ぁヶ；")));
     }

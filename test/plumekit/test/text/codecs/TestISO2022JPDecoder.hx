@@ -2,7 +2,7 @@ package plumekit.test.text.codecs;
 
 import haxe.io.Bytes;
 import utest.Assert;
-import plumekit.text.codec.Decoder;
+import plumekit.text.codec.DecoderRunner;
 import plumekit.text.codec.ISO2022JPDecoder;
 
 
@@ -27,7 +27,7 @@ class TestISO2022JPDecoder {
         bytes.set(12, 0x42);
 
         var handler = new ISO2022JPDecoder();
-        var decoder = new Decoder(handler);
+        var decoder = new DecoderRunner(handler);
 
         Assert.equals(" ぁヶ；", decoder.decode(bytes));
     }
