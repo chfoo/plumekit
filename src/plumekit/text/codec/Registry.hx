@@ -135,4 +135,28 @@ class Registry {
 
         return decoder;
     }
+
+    public static function getSpecDecoder(fallbackEncoding:String):Decoder {
+        return new SpecDecoder(fallbackEncoding);
+    }
+
+    public static function getSpecUTF8Decoder():Decoder {
+        return new SpecUTF8Decoder();
+    }
+
+    public static function getSpecUTF8WithoutBOMDecoder():Decoder {
+        return getDecoder("utf-8");
+    }
+
+    public static function getSpecUTF8WithoutBOMOrFailDecoder():Decoder {
+        return getDecoder("utf-8", ErrorMode.Fatal);
+    }
+
+    public static function getSpecEncoder(encoding:String):Encoder {
+        return getEncoder(encoding, ErrorMode.HTML);
+    }
+
+    public static function getSpecUTF8Encoder():Encoder {
+        return getEncoder("utf-8");
+    }
 }

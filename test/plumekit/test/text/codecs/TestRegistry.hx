@@ -1,5 +1,7 @@
 package plumekit.test.text.codecs;
 
+import haxe.io.Bytes;
+import plumekit.bindata.BaseEncoder;
 import plumekit.Exception;
 import plumekit.text.codec.Big5Decoder;
 import plumekit.text.codec.Big5Encoder;
@@ -21,6 +23,7 @@ import plumekit.text.codec.UTF8Decoder;
 import plumekit.text.codec.UTF8Encoder;
 import plumekit.text.codec.XUserDefinedDecoder;
 import plumekit.text.codec.XUserDefinedEncoder;
+import plumekit.text.TextExceptions.EncodingException;
 import utest.Assert;
 
 
@@ -79,5 +82,66 @@ class TestRegistry {
         Assert.is(Registry.getDecoderHandler("euc-kr"), EUCKRDecoder);
         Assert.is(Registry.getDecoderHandler("x-user-defined"), XUserDefinedDecoder);
         Assert.is(Registry.getDecoderHandler("replacement"), ReplacementDecoder);
+    }
+
+    public function testGetSpecDecoder() {
+        var decoder = Registry.getSpecDecoder("latin1");
+
+        Assert.equals("a", decoder.decode(Bytes.ofString("a")));
+        Assert.equals("ab", decoder.decode(Bytes.ofString("ab")));
+        Assert.equals("abc", decoder.decode(Bytes.ofString("abc")));
+
+        var utf8BOMBytes = BaseEncoder.base16decode("EFBBBF61");
+        Assert.equals("a", decoder.decode(utf8BOMBytes));
+
+        var utf16BEBytes = BaseEncoder.base16decode("FEFF0061");
+        Assert.equals("a", decoder.decode(utf16BEBytes));
+
+        var utf16LEBytes = BaseEncoder.base16decode("FFFE6100");
+        Assert.equals("a", decoder.decode(utf16LEBytes));
+    }
+
+    public function testGetSpecUTF8Decoder() {
+        var decoder = Registry.getSpecUTF8Decoder();
+
+        Assert.equals("a", decoder.decode(Bytes.ofString("a")));
+        Assert.equals("ab", decoder.decode(Bytes.ofString("ab")));
+        Assert.equals("abc", decoder.decode(Bytes.ofString("abc")));
+
+        var utf8BOMBytes = BaseEncoder.base16decode("EFBBBF61");
+        Assert.equals("a", decoder.decode(utf8BOMBytes));
+    }
+
+    public function testGetSpecUTF8WithoutBOMDecoder() {
+        var decoder = Registry.getSpecUTF8WithoutBOMDecoder();
+
+        Assert.equals("a", decoder.decode(Bytes.ofString("a")));
+    }
+
+    public function testGetSpecUTF8WithoutBOMOrFailDecoder() {
+        var decoder = Registry.getSpecUTF8WithoutBOMOrFailDecoder();
+
+        Assert.equals("a", decoder.decode(Bytes.ofString("a")));
+
+        var badBytes = Bytes.alloc(1);
+        badBytes.set(0, 0xFF);
+        Assert.raises(decoder.decode.bind(badBytes), EncodingException);
+    }
+
+    public function testSpecEncoder() {
+        var encoder = Registry.getSpecEncoder("latin1");
+
+        var result = encoder.encode("a 💾");
+
+        Assert.equals(0, Bytes.ofString("a &#128190;").compare(result));
+    }
+
+    public function testSpecUTF8Encoder() {
+        var encoder = Registry.getSpecUTF8Encoder();
+
+        var expected = BaseEncoder.base16decode("6120F09F92BE");
+        var result = encoder.encode("a 💾");
+
+        Assert.equals(0, expected.compare(result));
     }
 }
