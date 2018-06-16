@@ -49,7 +49,7 @@ class Registry {
                         throw "Shouldn't reach here";
                 }
             case "Legacy multi-byte Korean encodings":
-                throw new NotImplementedException();
+                return new EUCKREncoder();
             default:
                 switch (name) {
                     case "replacement":
@@ -91,7 +91,7 @@ class Registry {
                         throw "Shouldn't reach here";
                 }
             case "Legacy multi-byte Korean encodings":
-                throw new NotImplementedException();
+                return new EUCKRDecoder();
             default:
                 switch (name) {
                     case "replacement":
