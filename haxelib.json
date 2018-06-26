@@ -9,6 +9,7 @@
   "releasenote": "Initial release",
   "contributors": ["chfoo"],
   "dependencies": {
+    "callnest": "",
     "commonbox": "",
     "exception": "1.0.2",
     "unifill": "0.4.1"
