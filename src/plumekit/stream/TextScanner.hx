@@ -2,6 +2,7 @@ package plumekit.stream;
 
 import commonbox.ds.Deque;
 import haxe.ds.Option;
+import plumekit.stream.StreamExceptions;
 
 using unifill.Unifill;
 
@@ -13,8 +14,8 @@ class TextScanner {
     var buffer:Deque<Int>; // in code points
     var isEOF = false;
 
-    public function new() {
-        buffer = new Deque();
+    public function new(maxBufferSize:Int = 16384) {
+        buffer = new Deque(maxBufferSize);
     }
 
     public function isEmpty():Bool {
@@ -42,8 +43,12 @@ class TextScanner {
     }
 
     public function pushString(text:String) {
-        for (codePoint in text.uIterator()) {
-            buffer.push(codePoint);
+        try {
+            for (codePoint in text.uIterator()) {
+                buffer.push(codePoint);
+            }
+        } catch (exception:commonbox.Exception.FullException) {
+            throw new BufferFullException("Buffer full", exception);
         }
     }
 

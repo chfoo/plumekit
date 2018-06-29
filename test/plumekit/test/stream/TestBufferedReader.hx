@@ -5,8 +5,9 @@ import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.BufferedReader;
 import plumekit.stream.InputStream;
-import plumekit.stream.ReadResult;
 import plumekit.stream.ReadIntoResult;
+import plumekit.stream.ReadResult;
+import plumekit.stream.StreamExceptions.BufferFullException;
 import utest.Assert;
 
 
@@ -175,6 +176,24 @@ class TestBufferedReader {
 
                 done();
             })
+            .handleException(exceptionHandler);
+    }
+
+    function testBufferFull() {
+        var bytes = Bytes.ofString("hello world!");
+        var input = new BytesInput(bytes);
+        var stream = new InputStream(input);
+        var reader = new BufferedReader(stream, 10, 2);
+
+        var done = Assert.createAsync();
+
+        function callback(task:Task<ReadResult<Bytes>>) {
+            Assert.raises(task.getResult, BufferFullException);
+            done();
+        }
+
+        reader.readUntil("\n".code)
+            .onComplete(callback)
             .handleException(exceptionHandler);
     }
 

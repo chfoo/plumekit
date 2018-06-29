@@ -10,14 +10,17 @@ import plumekit.text.codec.Registry;
 class TextReader {
     var streamReader:StreamReader;
     var decoder:Decoder;
-    var chunkSize = 8192;
+    var chunkSize:Int;
     var isEOF = false;
     var textScanner:TextScanner;
 
-    public function new(source:Source, encoding:String = "utf-8", ?errorMode:ErrorMode) {
+    public function new(source:Source, encoding:String = "utf-8",
+            ?errorMode:ErrorMode,
+            maxBufferSize:Int = 16384, chunkSize:Int = 8192) {
         streamReader = new StreamReader(source);
         decoder = Registry.getDecoder(encoding, errorMode);
-        textScanner = new TextScanner();
+        this.chunkSize = chunkSize;
+        textScanner = new TextScanner(maxBufferSize);
     }
 
     public function read(?amount:Int):Task<String> {

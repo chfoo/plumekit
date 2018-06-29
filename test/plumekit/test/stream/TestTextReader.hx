@@ -1,12 +1,12 @@
 package plumekit.test.stream;
 
-import haxe.CallStack;
 import callnest.Task;
 import callnest.TaskTools;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
 import plumekit.stream.ReadResult;
+import plumekit.stream.StreamExceptions.BufferFullException;
 import plumekit.stream.TextReader;
 import utest.Assert;
 
@@ -83,6 +83,24 @@ class TestTextReader {
         readIteration()
             .onComplete(function (task) {
                 task.getResult();
+                done();
+            })
+            .handleException(exceptionHandler);
+    }
+
+    function testBufferFull() {
+        var bytes = Bytes.ofString("Hello world!");
+        var bytesInput = new BytesInput(bytes);
+        var inputStream = new InputStream(bytesInput);
+        var textReader = new TextReader(inputStream, 10, 2);
+
+        var resultBuffer = new StringBuf();
+        var done = Assert.createAsync();
+
+        textReader.readLine()
+            .onComplete(function (task) {
+                Assert.raises(task.getResult, BufferFullException);
+
                 done();
             })
             .handleException(exceptionHandler);

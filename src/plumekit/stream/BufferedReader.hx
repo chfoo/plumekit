@@ -4,6 +4,7 @@ import callnest.Task;
 import callnest.TaskTools;
 import commonbox.ds.Deque;
 import haxe.io.Bytes;
+import plumekit.stream.StreamExceptions;
 
 
 class BufferedReader implements Reader {
@@ -174,8 +175,12 @@ class BufferedReader implements Reader {
         return task.continueWith(function (task:Task<Bytes>) {
             var bytes = task.getResult();
 
-            for (index in 0...bytes.length) {
-                buffer.push(bytes.get(index));
+            try {
+                for (index in 0...bytes.length) {
+                    buffer.push(bytes.get(index));
+                }
+            } catch (exception:commonbox.Exception.FullException) {
+                throw new BufferFullException("Buffer full", exception);
             }
 
             return TaskTools.fromResult(bytes.length);
