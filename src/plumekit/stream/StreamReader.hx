@@ -18,29 +18,28 @@ class StreamReader implements Reader {
         source.close();
     }
 
-    public function read(?amount:Int):Task<ReadResult> {
+    public function read(?amount:Int):Task<ReadResult<Bytes>> {
         amount = amount != null ? amount : -1;
 
         if (amount >= 0) {
             return readByAmount(amount);
         } else {
             return readAll().continueWith(function (task) {
-                return TaskTools.fromResult(ReadResult.Data(task.getResult()));
+                return TaskTools.fromResult(ReadResult.Success(task.getResult()));
             });
         }
     }
 
-    function readByAmount(amount:Int):Task<ReadResult> {
+    function readByAmount(amount:Int):Task<ReadResult<Bytes>> {
         var destBytes = Bytes.alloc(amount);
 
         return readInto(destBytes, 0, amount).continueWith(function (task) {
-            var bytesRead = task.getResult();
-
-            if (bytesRead == amount) {
-                return TaskTools.fromResult(ReadResult.Data(destBytes));
-            } else {
-                var slice = destBytes.sub(0, bytesRead);
-                return TaskTools.fromResult(ReadResult.Incomplete(slice));
+            switch (task.getResult()) {
+                case ReadIntoResult.Success:
+                    return TaskTools.fromResult(ReadResult.Success(destBytes));
+                case ReadIntoResult.Incomplete(bytesRead):
+                    var slice = destBytes.sub(0, bytesRead);
+                    return TaskTools.fromResult(ReadResult.Incomplete(slice));
             }
         });
     }
@@ -55,7 +54,7 @@ class StreamReader implements Reader {
         });
     }
 
-    public function readInto(bytes:Bytes, position:Int, length:Int):Task<Int> {
+    public function readInto(bytes:Bytes, position:Int, length:Int):Task<ReadIntoResult> {
         var impl = new ReadIntoImpl(source);
         return impl.readInto(bytes, position, length);
     }
@@ -78,13 +77,12 @@ private class ReadIntoImpl {
     var position:Int;
     var length:Int;
     var bytesRead:Int = 0;
-    var once:Bool = false;
 
     public function new(source:Source) {
         this.source = source;
     }
 
-    public function readInto(bytes:Bytes, position:Int, length:Int):Task<Int> {
+    public function readInto(bytes:Bytes, position:Int, length:Int):Task<ReadIntoResult> {
         this.destBytes = bytes;
         this.position = position;
         this.length = length;
@@ -93,20 +91,33 @@ private class ReadIntoImpl {
         if (length > 0) {
             return readIteration();
         } else {
-            return TaskTools.fromResult(0);
+            return TaskTools.fromResult(ReadIntoResult.Success);
         }
     }
 
     public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Int> {
-        once = true;
-        return readInto(bytes, position, length);
+        this.destBytes = bytes;
+        this.position = position;
+        this.length = length;
+        bytesRead = 0;
+
+        return source.readReady().continueWith(readOnceReadyCallback);
     }
 
-    function readIteration():Task<Int> {
+    function readOnceReadyCallback(task:Task<Source>):Task<Int> {
+        try {
+            bytesRead = source.readInto(destBytes, position, length);
+        } catch (exception:Eof) {
+            return TaskTools.fromResult(0);
+        }
+        return TaskTools.fromResult(bytesRead);
+    }
+
+    function readIteration():Task<ReadIntoResult> {
         return source.readReady().continueWith(readReadyCallback);
     }
 
-    function readReadyCallback(task:Task<Source>):Task<Int> {
+    function readReadyCallback(task:Task<Source>):Task<ReadIntoResult> {
         var index = position + bytesRead;
         var remain = length - bytesRead;
 
@@ -117,15 +128,15 @@ private class ReadIntoImpl {
         try {
             bytesRead += source.readInto(destBytes, index, remain);
         } catch (exception:Eof) {
-            return TaskTools.fromResult(bytesRead);
+            return TaskTools.fromResult(ReadIntoResult.Incomplete(bytesRead));
         }
 
         remain = length - bytesRead;
 
-        if (remain > 0 && !once) {
+        if (remain > 0) {
             return readIteration();
         } else {
-            return TaskTools.fromResult(bytesRead);
+            return TaskTools.fromResult(ReadIntoResult.Success);
         }
     }
 }

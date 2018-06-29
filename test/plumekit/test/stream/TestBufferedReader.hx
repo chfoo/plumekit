@@ -1,11 +1,12 @@
 package plumekit.test.stream;
 
-import plumekit.stream.ReadResult;
 import callnest.Task;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
-import plumekit.stream.InputStream;
 import plumekit.stream.BufferedReader;
+import plumekit.stream.InputStream;
+import plumekit.stream.ReadResult;
+import plumekit.stream.ReadIntoResult;
 import utest.Assert;
 
 
@@ -21,11 +22,11 @@ class TestBufferedReader {
 
         var done = Assert.createAsync();
 
-        function callback(task:Task<ReadResult>) {
+        function callback(task:Task<ReadResult<Bytes>>) {
             var result = task.getResult();
 
             switch (result) {
-                case ReadResult.Data(bytes):
+                case ReadResult.Success(bytes):
                     Assert.equals("hello\n", bytes.toString());
                 case ReadResult.Incomplete(bytes):
                     Assert.equals("world!", bytes.toString());
@@ -42,11 +43,12 @@ class TestBufferedReader {
             .handleException(exceptionHandler);
     }
 
-    function readUntilCallbackHelper(task:Task<ReadResult>):Task<ReadResult> {
+    function readUntilCallbackHelper(task:Task<ReadResult<Bytes>>)
+            :Task<ReadResult<Bytes>> {
         var result = task.getResult();
 
         switch (result) {
-            case ReadResult.Data(bytes):
+            case ReadResult.Success(bytes):
                 Assert.equals("0", bytes.toString());
             default:
                 Assert.fail();
@@ -82,9 +84,9 @@ class TestBufferedReader {
             .continueWith(function (task) {
                 return reader.read(5);
             }) // => 12345 [6789]
-            .continueWith(function (task:Task<ReadResult>) {
+            .continueWith(function (task:Task<ReadResult<Bytes>>) {
                 switch (task.getResult()) {
-                    case ReadResult.Data(bytes):
+                    case ReadResult.Success(bytes):
                         Assert.equals("12345", bytes.toString());
                     default:
                         Assert.fail();
@@ -92,7 +94,7 @@ class TestBufferedReader {
 
                 return reader.read(1234);
             })
-            .onComplete(function (task:Task<ReadResult>) {
+            .onComplete(function (task:Task<ReadResult<Bytes>>) {
                 switch (task.getResult()) {
                     case ReadResult.Incomplete(bytes):
                         Assert.equals("6789", bytes.toString());
@@ -135,11 +137,14 @@ class TestBufferedReader {
                 return reader.readInto(bytes, 0, 5);
             }) // => 12345 [6789]
             .continueWith(function (task) {
-                var bytesRead = task.getResult();
-                Assert.equals(5, bytesRead);
+                switch (task.getResult()) {
+                    case ReadIntoResult.Success:
+                    case ReadIntoResult.Incomplete(bytesRead):
+                        Assert.fail('bytesRead = $bytesRead');
+                }
                 return reader.readInto(bytes, 5, 4);
             }) // => 6789
-            .onComplete(function (task:Task<Int>) {
+            .onComplete(function (task:Task<ReadIntoResult>) {
                 task.getResult();
                 Assert.equals("123456789", bytes.toString());
 

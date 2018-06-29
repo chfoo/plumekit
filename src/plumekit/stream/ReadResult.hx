@@ -1,9 +1,7 @@
 package plumekit.stream;
 
-import haxe.io.Bytes;
 
-
-enum ReadResult {
-    Data(data:Bytes);
-    Incomplete(data:Bytes);
+enum ReadResult<T> {
+    Success(data:T);
+    Incomplete(data:T);
 }

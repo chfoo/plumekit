@@ -21,11 +21,11 @@ class BufferedReader implements Reader {
         streamReader.close();
     }
 
-    public function readUntil(char:Int):Task<ReadResult> {
+    public function readUntil(char:Int):Task<ReadResult<Bytes>> {
         return readUntilIteration(char, 0);
     }
 
-    function readUntilIteration(char:Int, fromIndex:Int):Task<ReadResult> {
+    function readUntilIteration(char:Int, fromIndex:Int):Task<ReadResult<Bytes>> {
         switch (buffer.indexOf(char, fromIndex)) {
             case Some(index):
                 return readUntilReturnBufferResult(index + 1);
@@ -36,13 +36,13 @@ class BufferedReader implements Reader {
         }
     }
 
-    function readUntilReturnBufferResult(length:Int):Task<ReadResult> {
+    function readUntilReturnBufferResult(length:Int):Task<ReadResult<Bytes>> {
          var bytes = Bytes.alloc(length);
         shiftBuffer(bytes, 0, length);
-        return TaskTools.fromResult(ReadResult.Data(bytes));
+        return TaskTools.fromResult(ReadResult.Success(bytes));
     }
 
-    function readUntilFillBuffer(char:Int, fromIndex:Int):Task<ReadResult> {
+    function readUntilFillBuffer(char:Int, fromIndex:Int):Task<ReadResult<Bytes>> {
         return fillBuffer().continueWith(function (task:Task<Int>) {
             var bytesRead = task.getResult();
 
@@ -56,7 +56,7 @@ class BufferedReader implements Reader {
         });
     }
 
-    public function read(?amount:Int):Task<ReadResult> {
+    public function read(?amount:Int):Task<ReadResult<Bytes>> {
         amount = amount != null ? amount : -1;
 
         if (amount >= 0) {
@@ -66,26 +66,25 @@ class BufferedReader implements Reader {
         }
     }
 
-    function readAmount(amount:Int):Task<ReadResult> {
+    function readAmount(amount:Int):Task<ReadResult<Bytes>> {
         var destBytes = Bytes.alloc(amount);
         var task = readInto(destBytes, 0, amount);
 
-        return task.continueWith(function (task:Task<Int>) {
-            var bytesRead = task.getResult();
-
-            if (bytesRead == amount) {
-                return TaskTools.fromResult(ReadResult.Data(destBytes));
-            } else {
-                var slice = destBytes.sub(0, bytesRead);
-                return TaskTools.fromResult(ReadResult.Incomplete(slice));
+        return task.continueWith(function (task:Task<ReadIntoResult>) {
+            switch (task.getResult()) {
+                case ReadIntoResult.Success:
+                    return TaskTools.fromResult(ReadResult.Success(destBytes));
+                case ReadIntoResult.Incomplete(bytesRead):
+                    var slice = destBytes.sub(0, bytesRead);
+                    return TaskTools.fromResult(ReadResult.Incomplete(slice));
             }
         });
     }
 
-    function readAmountAll():Task<ReadResult> {
+    function readAmountAll():Task<ReadResult<Bytes>> {
         return readAll().continueWith(function (task:Task<Bytes>) {
             var bytes = task.getResult();
-            return TaskTools.fromResult(ReadResult.Data(bytes));
+            return TaskTools.fromResult(ReadResult.Success(bytes));
         });
     }
 
@@ -108,14 +107,22 @@ class BufferedReader implements Reader {
         return TaskTools.fromResult(bytes);
     }
 
-    public function readInto(bytes:Bytes, position:Int, length:Int):Task<Int> {
+    public function readInto(bytes:Bytes, position:Int, length:Int):Task<ReadIntoResult> {
         var shiftedCount = shiftBuffer(bytes, position, length);
+
+        function callback(task) {
+            switch (task.getResult()) {
+                case ReadIntoResult.Success:
+                    return TaskTools.fromResult(ReadIntoResult.Success);
+                case ReadIntoResult.Incomplete(bytesRead):
+                    return TaskTools.fromResult(
+                        ReadIntoResult.Incomplete(shiftedCount + bytesRead));
+            }
+        }
 
         return streamReader.readInto(
             bytes, position + shiftedCount, length - shiftedCount)
-            .continueWith(function (task) {
-                return TaskTools.fromResult(shiftedCount + task.getResult());
-            });
+            .continueWith(callback);
     }
 
     public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Int> {

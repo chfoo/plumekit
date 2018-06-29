@@ -7,6 +7,7 @@ import haxe.io.BytesBuffer;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
 import plumekit.stream.ReadResult;
+import plumekit.stream.ReadIntoResult;
 import plumekit.stream.StreamReader;
 import utest.Assert;
 
@@ -40,10 +41,12 @@ class TestStreamReader {
         var done = Assert.createAsync();
 
         streamReader.readInto(resultBytes, 0, 5).onComplete(function (task) {
-            var bytesRead = task.getResult();
-
-            Assert.equals(5, bytesRead);
-            Assert.equals("Hello", resultBytes.sub(0,5).toString());
+            switch (task.getResult()) {
+                case ReadIntoResult.Success:
+                    Assert.equals("Hello", resultBytes.sub(0,5).toString());
+                case ReadIntoResult.Incomplete(bytesRead):
+                    Assert.fail('bytesRead = $bytesRead');
+            }
 
             done();
         }).handleException(exceptionHandler);
@@ -55,7 +58,7 @@ class TestStreamReader {
         var resultBytes = Bytes.alloc(10);
         var done = Assert.createAsync();
 
-        streamReader.readInto(resultBytes, 0, 5).onComplete(function (task) {
+        streamReader.readIntoOnce(resultBytes, 0, 5).onComplete(function (task) {
             var bytesRead = task.getResult();
             Assert.equals(5, bytesRead);
             Assert.equals("H".code, resultBytes.get(0));
@@ -97,11 +100,11 @@ class TestStreamReader {
             return streamReader.read(10).continueWith(readCallback);
         }
 
-        readCallback = function (task:Task<ReadResult>):Task<Bool> {
+        readCallback = function (task:Task<ReadResult<Bytes>>):Task<Bool> {
             var readResult = task.getResult();
 
             switch (readResult) {
-                case ReadResult.Data(bytes):
+                case ReadResult.Success(bytes):
                     resultBuf.add(bytes);
                     return readIteration();
                 case ReadResult.Incomplete(bytes):
