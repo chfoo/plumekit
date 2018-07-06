@@ -7,10 +7,21 @@ import haxe.io.Input;
 
 
 class InputStream implements Source {
+    public var readTimeout(get, set):Float;
+
+    var _readTimeout:Float = Math.POSITIVE_INFINITY;
     var input:Input;
 
     public function new(input:Input) {
         this.input = input;
+    }
+
+    function get_readTimeout():Float {
+        return _readTimeout;
+    }
+
+    function set_readTimeout(value:Float):Float {
+        return _readTimeout = value;
     }
 
     public function close() {

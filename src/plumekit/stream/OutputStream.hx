@@ -7,10 +7,21 @@ import haxe.io.Output;
 
 
 class OutputStream implements Sink {
+    public var writeTimeout(get, set):Float;
+
+    var _writeTimeout:Float = Math.POSITIVE_INFINITY;
     var output:Output;
 
     public function new(output:Output) {
         this.output = output;
+    }
+
+    function get_writeTimeout():Float {
+        return _writeTimeout;
+    }
+
+    function set_writeTimeout(value:Float):Float {
+        return _writeTimeout = value;
     }
 
     public function close():Void {
