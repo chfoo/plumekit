@@ -38,7 +38,7 @@ class BufferedReader implements Reader {
     }
 
     function readUntilReturnBufferResult(length:Int):Task<ReadResult<Bytes>> {
-         var bytes = Bytes.alloc(length);
+        var bytes = Bytes.alloc(length);
         shiftBuffer(bytes, 0, length);
         return TaskTools.fromResult(ReadResult.Success(bytes));
     }
