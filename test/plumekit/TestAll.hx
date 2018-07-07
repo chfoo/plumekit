@@ -19,14 +19,14 @@ class TestAll {
 
     static function addEventLoopCases(runner:Runner) {
         #if sys
-        runner.addCase(plumekit.test.eventloop.TestSelectConnectionServer);
+        runner.addCase(new plumekit.test.eventloop.TestSelectConnectionServer());
         #end
     }
 
     static function addNetCases(runner:Runner) {
         #if sys
-        runner.addCase(plumekit.test.net.TestSelectConnection);
-        runner.addCase(plumekit.test.net.TestSelectSocketStream);
+        runner.addCase(new plumekit.test.net.TestSelectConnection());
+        runner.addCase(new plumekit.test.net.TestSelectSocketStream());
         #end
     }
 }
