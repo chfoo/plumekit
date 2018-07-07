@@ -31,7 +31,7 @@ class TestSelectSocketStream {
         }, TEST_TIMEOUT);
 
         socket.setTimeout(SOCKET_TIMEOUT);
-        socket.connect(new Host("localhost"), 80);
+        connectSocket(socket);
         socket.setBlocking(false);
         socket.setFastSend(true);
 
@@ -64,6 +64,22 @@ class TestSelectSocketStream {
             .handleException(exceptionHandler);
 
         eventLoop.startTimed(LOOP_DURATION);
+    }
+
+    function connectSocket(socket:Socket) {
+        for (port in [80, 8080, 8000, 9000, 6379, -1]) {
+            if (port == -1) {
+                throw "Test HTTP server not found";
+            }
+
+            try {
+                socket.connect(new Host("localhost"), port);
+            } catch (exception:String) {
+                continue;
+            }
+
+            break;
+        }
     }
 
     function exceptionHandler(exception:Any) {

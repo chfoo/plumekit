@@ -2,8 +2,10 @@ package plumekit.net;
 
 import callnest.Task;
 import callnest.TaskTools;
+import haxe.io.Eof;
 import plumekit.stream.Sink;
 import plumekit.stream.Source;
+import plumekit.stream.StreamException;
 import sys.net.Host;
 import sys.net.Socket;
 
@@ -60,10 +62,18 @@ class SelectConnection implements Connection {
     public function connect(hostname:String, port:Int):Task<Connection> {
         var oldWriteTimeout = stream.writeTimeout;
         stream.writeTimeout = connectTimeout;
+        var host = new Host(hostname);
 
-        socket.connect(new Host(hostname), port);
+        // Non-blocking, should return immediately
+        socket.connect(host, port);
 
         return stream.writeReady().continueWith(function (task) {
+            try {
+                socket.connect(host, port);
+            } catch (exception:Any) {
+                throw NetException.wrapHaxeException(exception);
+            }
+
             stream.writeTimeout = oldWriteTimeout;
             task.getResult();
 
@@ -87,7 +97,15 @@ class SelectConnection implements Connection {
             stream.readTimeout = oldReadTimeout;
             task.getResult();
 
-            var childSocket = socket.accept();
+            var childSocket;
+
+            try {
+                childSocket = socket.accept();
+            } catch (exception:Eof) {
+                // Race condition where client closes connection
+                return accept();
+            }
+
             var childConnection = new SelectConnection(childSocket, dispatcher);
 
             return TaskTools.fromResult((childConnection:Connection));

@@ -4,7 +4,7 @@ import callnest.Task;
 import callnest.TaskDefaults;
 import callnest.TaskSource;
 import haxe.Timer;
-import plumekit.net.NetExceptions;
+import plumekit.net.NetException.TimeoutException;
 import sys.net.Socket;
 
 

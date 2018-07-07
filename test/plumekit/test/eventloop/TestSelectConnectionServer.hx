@@ -56,8 +56,12 @@ class TestSelectConnectionServer {
 
         var done = Assert.createAsync(function() {
             for (clientTask in clientTasks) {
-                var text = clientTask.getResult().toString();
-                Assert.equals("Hello world!\n", text);
+                try {
+                    var text = clientTask.getResult().toString();
+                    Assert.equals("Hello world!\n", text);
+                } catch (exception:Any) {
+                    Assert.fail(exception);
+                }
             }
         }, TEST_TIMEOUT);
 

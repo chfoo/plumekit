@@ -43,7 +43,11 @@ class SelectSocketStream implements Source implements Sink {
     }
 
     public function readInto(bytes:Bytes, position:Int, length:Int):Int {
-        return socket.input.readBytes(bytes, position, length);
+        try {
+            return socket.input.readBytes(bytes, position, length);
+        } catch (exception:Any) {
+            throw NetException.wrapHaxeException(exception);
+        }
     }
 
     public function readReady():Task<Source> {
@@ -59,7 +63,11 @@ class SelectSocketStream implements Source implements Sink {
     }
 
     public function write(bytes:Bytes, position:Int, length:Int):Int {
-        return socket.output.writeBytes(bytes, position, length);
+        try {
+            return socket.output.writeBytes(bytes, position, length);
+        } catch (exception:Any) {
+            throw NetException.wrapHaxeException(exception);
+        }
     }
 
     public function writeReady():Task<Sink> {

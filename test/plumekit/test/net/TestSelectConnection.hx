@@ -1,6 +1,7 @@
 package plumekit.test.net;
 
 import plumekit.eventloop.SelectEventLoop;
+import plumekit.net.NetException;
 import plumekit.net.SelectConnection;
 import plumekit.net.SelectDispatcher;
 import utest.Assert;
@@ -61,5 +62,21 @@ class TestSelectConnection {
     function exceptionHandler(exception:Any) {
         Assert.fail(exception);
         throw exception;
+    }
+
+    function testConnectFailure() {
+        var dispatcher = new SelectDispatcher();
+        var eventLoop = new SelectEventLoop(dispatcher);
+        var connection = new SelectConnection(dispatcher);
+
+        var done = Assert.createAsync(TEST_TIMEOUT);
+
+        connection.connectTimeout = SOCKET_TIMEOUT;
+        connection.connect("localhost", 4).onComplete(function (task) {
+            Assert.raises(task.getResult, NetException);
+            done();
+        });
+
+        eventLoop.startTimed(LOOP_DURATION);
     }
 }
