@@ -23,7 +23,7 @@ import plumekit.text.codec.UTF8Decoder;
 import plumekit.text.codec.UTF8Encoder;
 import plumekit.text.codec.XUserDefinedDecoder;
 import plumekit.text.codec.XUserDefinedEncoder;
-import plumekit.text.TextExceptions.EncodingException;
+import plumekit.text.TextException.EncodingException;
 import utest.Assert;
 
 

@@ -2,7 +2,7 @@ package plumekit.text.codec;
 
 import haxe.io.Bytes;
 import unifill.CodePoint;
-import plumekit.text.TextExceptions;
+import plumekit.text.TextException;
 
 using commonbox.utils.OptionTools;
 using unifill.Unifill;

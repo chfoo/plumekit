@@ -4,7 +4,7 @@ import haxe.io.Bytes;
 import utest.Assert;
 import plumekit.text.codec.EncoderRunner;
 import plumekit.text.codec.SingleByteEncoder;
-import plumekit.text.TextExceptions;
+import plumekit.text.TextException;
 
 
 class TestSingleByteEncoder {

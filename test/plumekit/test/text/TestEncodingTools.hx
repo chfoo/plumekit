@@ -3,7 +3,7 @@ package plumekit.test.text;
 import haxe.io.Bytes;
 import utest.Assert;
 import plumekit.text.codec.ErrorMode;
-import plumekit.text.TextExceptions;
+import plumekit.text.TextException;
 
 using plumekit.text.EncodingTools;
 
