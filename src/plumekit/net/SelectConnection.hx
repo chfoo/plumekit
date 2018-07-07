@@ -5,7 +5,6 @@ import callnest.TaskTools;
 import haxe.io.Eof;
 import plumekit.stream.Sink;
 import plumekit.stream.Source;
-import plumekit.stream.StreamException;
 import sys.net.Host;
 import sys.net.Socket;
 

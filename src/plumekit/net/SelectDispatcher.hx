@@ -134,6 +134,7 @@ class SelectDispatcher {
                 socketArray.remove(socket);
                 entryMap.remove(socket);
                 expireEntry(entry);
+                socket.close();
             }
         }
     }
