@@ -1,5 +1,8 @@
 language: haxe
 
+services:
+    - redis
+
 install:
   - yes | haxelib install test.hxml
   - yes | haxelib install hxml/test.cpp.hxml
