@@ -2,7 +2,7 @@ package plumekit.stream;
 
 import commonbox.ds.Deque;
 import haxe.ds.Option;
-import plumekit.stream.StreamExceptions;
+import plumekit.stream.StreamException;
 
 using unifill.Unifill;
 

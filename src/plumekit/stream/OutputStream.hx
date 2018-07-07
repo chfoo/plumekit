@@ -33,7 +33,11 @@ class OutputStream implements Sink {
     }
 
     public function write(bytes:Bytes, position:Int, length:Int):Int {
-        return output.writeBytes(bytes, position, length);
+        try {
+            return output.writeBytes(bytes, position, length);
+        } catch (exception:Any) {
+            throw StreamException.wrapHaxeException(exception);
+        }
     }
 
     public function writeReady():Task<Sink> {

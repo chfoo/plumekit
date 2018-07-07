@@ -4,7 +4,7 @@ import callnest.Task;
 import callnest.TaskTools;
 import commonbox.ds.Deque;
 import haxe.io.Bytes;
-import plumekit.stream.StreamExceptions;
+import plumekit.stream.StreamException;
 
 
 class BufferedReader implements Reader {

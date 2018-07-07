@@ -7,7 +7,7 @@ import plumekit.stream.BufferedReader;
 import plumekit.stream.InputStream;
 import plumekit.stream.ReadIntoResult;
 import plumekit.stream.ReadResult;
-import plumekit.stream.StreamExceptions.BufferFullException;
+import plumekit.stream.StreamException.BufferFullException;
 import utest.Assert;
 
 

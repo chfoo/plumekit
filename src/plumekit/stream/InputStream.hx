@@ -29,7 +29,11 @@ class InputStream implements Source {
     }
 
     public function readInto(bytes:Bytes, position:Int, length:Int):Int {
-        return input.readBytes(bytes, position, length);
+        try {
+            return input.readBytes(bytes, position, length);
+        } catch (exception:Any) {
+            throw StreamException.wrapHaxeException(exception);
+        }
     }
 
     public function readReady():Task<Source> {

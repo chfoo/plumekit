@@ -6,7 +6,7 @@ import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
 import plumekit.stream.ReadResult;
-import plumekit.stream.StreamExceptions.BufferFullException;
+import plumekit.stream.StreamException.BufferFullException;
 import plumekit.stream.TextReader;
 import utest.Assert;
 

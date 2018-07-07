@@ -4,7 +4,7 @@ import callnest.Task;
 import callnest.TaskTools;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
-import haxe.io.Eof;
+import plumekit.stream.StreamException.EndOfFileException;
 
 
 class StreamReader implements Reader {
@@ -107,7 +107,7 @@ private class ReadIntoImpl {
     function readOnceReadyCallback(task:Task<Source>):Task<Int> {
         try {
             bytesRead = source.readInto(destBytes, position, length);
-        } catch (exception:Eof) {
+        } catch (exception:EndOfFileException) {
             return TaskTools.fromResult(0);
         }
         return TaskTools.fromResult(bytesRead);
@@ -127,7 +127,7 @@ private class ReadIntoImpl {
 
         try {
             bytesRead += source.readInto(destBytes, index, remain);
-        } catch (exception:Eof) {
+        } catch (exception:EndOfFileException) {
             return TaskTools.fromResult(ReadIntoResult.Incomplete(bytesRead));
         }
 
@@ -166,7 +166,7 @@ private class ReadAllImpl {
 
         try {
             iterationBytesRead = source.readInto(chunkBuffer, 0, chunkBuffer.length);
-        } catch (exception:Eof) {
+        } catch (exception:EndOfFileException) {
             return TaskTools.fromResult(bytesBuffer.getBytes());
         }
 
