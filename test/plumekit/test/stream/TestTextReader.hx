@@ -93,19 +93,38 @@ class TestTextReader {
     }
 
     function testBufferFull() {
-        var bytes = Bytes.ofString("Hello world!");
+        var bytes = Bytes.ofString("Hello\r\nworld");
         var bytesInput = new BytesInput(bytes);
         var inputStream = new InputStream(bytesInput);
-        var textReader = new TextReader(inputStream, 10, 2);
+        var textReader = new TextReader(inputStream, 6, 2);
 
-        var resultBuffer = new StringBuf();
         var done = Assert.createAsync();
 
-        textReader.readLine()
-            .onComplete(function (task) {
+        textReader.readLine(true)
+            .continueWith(function (task) {
                 switch (task.getResult()) {
                     case ReadScanResult.OverLimit(line):
-                        Assert.isTrue(line.startsWith("Hello worl"));
+                        Assert.equals("Hello", line);
+                    default:
+                        Assert.fail();
+                }
+
+                return textReader.readLine(true);
+            })
+            .continueWith(function (task) {
+                switch (task.getResult()) {
+                    case ReadScanResult.Success(line):
+                        Assert.equals("\r\n", line);
+                    default:
+                        Assert.fail();
+                }
+
+                return textReader.readLine(true);
+            })
+            .onComplete(function (task) {
+                switch (task.getResult()) {
+                    case ReadScanResult.Incomplete(line):
+                        Assert.equals("world", line);
                     default:
                         Assert.fail();
                 }

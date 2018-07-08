@@ -18,7 +18,7 @@ class TextReader {
     public function new(source:Source, encoding:String = "utf-8",
             ?errorMode:ErrorMode,
             maxBufferSize:Int = 16384, chunkSize:Int = 8192) {
-        Debug.assert(maxBufferSize > 0);
+        Debug.assert(maxBufferSize > 2);
         Debug.assert(chunkSize > 0);
 
         streamReader = new StreamReader(source);
@@ -81,8 +81,11 @@ class TextReader {
                 return TaskTools.fromResult(
                     ReadScanResult.Incomplete(textScanner.shiftString()));
             } else if (textScanner.bufferLength >= maxBufferSize) {
+                // Leave a character in the buffer because it might
+                // break in between a deliminator
+                var amount = textScanner.bufferLength - 1;
                 return TaskTools.fromResult(
-                    ReadScanResult.OverLimit(textScanner.shiftString()));
+                    ReadScanResult.OverLimit(textScanner.shiftString(amount)));
             }
 
             return readLine(keepEnd);
