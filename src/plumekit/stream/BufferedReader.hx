@@ -10,11 +10,16 @@ import plumekit.stream.StreamException;
 class BufferedReader implements Reader {
     var streamReader:StreamReader;
     var buffer:Deque<Int>;
+    var maxBufferSize:Int;
     var chunkSize:Int;
 
     public function new(source:Source, maxBufferSize:Int = 16384, chunkSize:Int = 8192) {
+        Debug.assert(maxBufferSize > 0);
+        Debug.assert(chunkSize > 0);
+
         this.streamReader = new StreamReader(source);
         buffer = new Deque(maxBufferSize);
+        this.maxBufferSize = maxBufferSize;
         this.chunkSize = chunkSize;
     }
 
@@ -22,11 +27,11 @@ class BufferedReader implements Reader {
         streamReader.close();
     }
 
-    public function readUntil(char:Int):Task<ReadResult<Bytes>> {
+    public function readUntil(char:Int):Task<ReadScanResult<Bytes>> {
         return readUntilIteration(char, 0);
     }
 
-    function readUntilIteration(char:Int, fromIndex:Int):Task<ReadResult<Bytes>> {
+    function readUntilIteration(char:Int, fromIndex:Int):Task<ReadScanResult<Bytes>> {
         switch (buffer.indexOf(char, fromIndex)) {
             case Some(index):
                 return readUntilReturnBufferResult(index + 1);
@@ -37,22 +42,26 @@ class BufferedReader implements Reader {
         }
     }
 
-    function readUntilReturnBufferResult(length:Int):Task<ReadResult<Bytes>> {
+    function readUntilReturnBufferResult(length:Int):Task<ReadScanResult<Bytes>> {
         var bytes = Bytes.alloc(length);
         shiftBuffer(bytes, 0, length);
-        return TaskTools.fromResult(ReadResult.Success(bytes));
+        return TaskTools.fromResult(ReadScanResult.Success(bytes));
     }
 
-    function readUntilFillBuffer(char:Int, fromIndex:Int):Task<ReadResult<Bytes>> {
+    function readUntilFillBuffer(char:Int, fromIndex:Int):Task<ReadScanResult<Bytes>> {
         return fillBuffer().continueWith(function (task:Task<Int>) {
             var bytesRead = task.getResult();
 
             if (bytesRead > 0) {
                 return readUntilIteration(char, fromIndex);
+            } else if (buffer.length == maxBufferSize) {
+                var bytes = Bytes.alloc(buffer.length);
+                shiftBuffer(bytes, 0, buffer.length);
+                return TaskTools.fromResult(ReadScanResult.OverLimit(bytes));
             } else {
                 var bytes = Bytes.alloc(buffer.length);
                 shiftBuffer(bytes, 0, buffer.length);
-                return TaskTools.fromResult(ReadResult.Incomplete(bytes));
+                return TaskTools.fromResult(ReadScanResult.Incomplete(bytes));
             }
         });
     }
@@ -170,17 +179,15 @@ class BufferedReader implements Reader {
     }
 
     function fillBuffer():Task<Int> {
-        var task = streamReader.readOnce(chunkSize);
+        var spaceAvailable = maxBufferSize - buffer.length;
+        var bytesToRead = Std.int(Math.min(chunkSize, spaceAvailable));
+        var task = streamReader.readOnce(bytesToRead);
 
         return task.continueWith(function (task:Task<Bytes>) {
             var bytes = task.getResult();
 
-            try {
-                for (index in 0...bytes.length) {
-                    buffer.push(bytes.get(index));
-                }
-            } catch (exception:commonbox.Exception.FullException) {
-                throw new BufferFullException("Buffer full", exception);
+            for (index in 0...bytes.length) {
+                buffer.push(bytes.get(index));
             }
 
             return TaskTools.fromResult(bytes.length);

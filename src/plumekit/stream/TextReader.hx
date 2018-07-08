@@ -10,6 +10,7 @@ import plumekit.text.codec.Registry;
 class TextReader {
     var streamReader:StreamReader;
     var decoder:Decoder;
+    var maxBufferSize:Int;
     var chunkSize:Int;
     var isEOF = false;
     var textScanner:TextScanner;
@@ -17,10 +18,14 @@ class TextReader {
     public function new(source:Source, encoding:String = "utf-8",
             ?errorMode:ErrorMode,
             maxBufferSize:Int = 16384, chunkSize:Int = 8192) {
+        Debug.assert(maxBufferSize > 0);
+        Debug.assert(chunkSize > 0);
+
         streamReader = new StreamReader(source);
         decoder = Registry.getDecoder(encoding, errorMode);
+        this.maxBufferSize = maxBufferSize;
         this.chunkSize = chunkSize;
-        textScanner = new TextScanner(maxBufferSize);
+        textScanner = new TextScanner();  // soft limit, don't pass maxBufferSize
     }
 
     public function read(?amount:Int):Task<String> {
@@ -59,22 +64,25 @@ class TextReader {
         });
     }
 
-    public function readLine(keepEnd:Bool = false):Task<ReadResult<String>> {
+    public function readLine(keepEnd:Bool = false):Task<ReadScanResult<String>> {
         switch (textScanner.scanLine(keepEnd)) {
             case Some(text):
-                return TaskTools.fromResult(ReadResult.Success(text));
+                return TaskTools.fromResult(ReadScanResult.Success(text));
             case None:
                 return readLineIteration(keepEnd);
         }
     }
 
-    function readLineIteration(keepEnd:Bool):Task<ReadResult<String>> {
+    function readLineIteration(keepEnd:Bool):Task<ReadScanResult<String>> {
         return fillBuffer().continueWith(function (task) {
             var text = task.getResult();
 
             if (text == "") {
                 return TaskTools.fromResult(
-                    ReadResult.Incomplete(textScanner.shiftString()));
+                    ReadScanResult.Incomplete(textScanner.shiftString()));
+            } else if (textScanner.bufferLength >= maxBufferSize) {
+                return TaskTools.fromResult(
+                    ReadScanResult.OverLimit(textScanner.shiftString()));
             }
 
             return readLine(keepEnd);

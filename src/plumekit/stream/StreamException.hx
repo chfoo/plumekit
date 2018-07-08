@@ -29,9 +29,5 @@ class StreamException extends SystemException {
 }
 
 
-class BufferFullException extends StreamException {
-}
-
-
 class EndOfFileException extends StreamException {
 }

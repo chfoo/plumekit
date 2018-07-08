@@ -10,6 +10,7 @@ import plumekit.net.SelectConnection;
 import plumekit.net.SelectDispatcher;
 import plumekit.stream.BufferedReader;
 import plumekit.stream.ReadResult;
+import plumekit.stream.ReadScanResult;
 import plumekit.stream.StreamReader;
 import plumekit.stream.StreamWriter;
 import utest.Assert;
@@ -84,10 +85,12 @@ class TestSelectConnectionServer {
         reader.readUntil("\n".code)
             .continueWith(function (task) {
                 switch (task.getResult()) {
-                    case ReadResult.Success(bytes):
+                    case ReadScanResult.Success(bytes):
                         trace("server echoing");
                         return writer.write(bytes);
-                    case ReadResult.Incomplete(bytes):
+                    case ReadScanResult.Incomplete(bytes):
+                        return TaskTools.fromResult(0);
+                    case ReadScanResult.OverLimit(bytes):
                         return TaskTools.fromResult(0);
                 }
             })

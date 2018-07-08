@@ -7,7 +7,7 @@ import plumekit.stream.BufferedReader;
 import plumekit.stream.InputStream;
 import plumekit.stream.ReadIntoResult;
 import plumekit.stream.ReadResult;
-import plumekit.stream.StreamException.BufferFullException;
+import plumekit.stream.ReadScanResult;
 import utest.Assert;
 
 
@@ -23,15 +23,17 @@ class TestBufferedReader {
 
         var done = Assert.createAsync();
 
-        function callback(task:Task<ReadResult<Bytes>>) {
+        function callback(task:Task<ReadScanResult<Bytes>>) {
             var result = task.getResult();
 
             switch (result) {
-                case ReadResult.Success(bytes):
+                case ReadScanResult.Success(bytes):
                     Assert.equals("hello\n", bytes.toString());
-                case ReadResult.Incomplete(bytes):
+                case ReadScanResult.Incomplete(bytes):
                     Assert.equals("world!", bytes.toString());
                     done();
+                case ReadScanResult.OverLimit(bytes):
+                    Assert.fail();
             }
         }
 
@@ -44,12 +46,12 @@ class TestBufferedReader {
             .handleException(exceptionHandler);
     }
 
-    function readUntilCallbackHelper(task:Task<ReadResult<Bytes>>)
-            :Task<ReadResult<Bytes>> {
+    function readUntilCallbackHelper(task:Task<ReadScanResult<Bytes>>)
+            :Task<ReadScanResult<Bytes>> {
         var result = task.getResult();
 
         switch (result) {
-            case ReadResult.Success(bytes):
+            case ReadScanResult.Success(bytes):
                 Assert.equals("0", bytes.toString());
             default:
                 Assert.fail();
@@ -187,8 +189,13 @@ class TestBufferedReader {
 
         var done = Assert.createAsync();
 
-        function callback(task:Task<ReadResult<Bytes>>) {
-            Assert.raises(task.getResult, BufferFullException);
+        function callback(task:Task<ReadScanResult<Bytes>>) {
+            switch (task.getResult()) {
+                case ReadScanResult.OverLimit(bytes):
+                    Assert.equals(10, bytes.length);
+                default:
+                    Assert.fail();
+            }
             done();
         }
 

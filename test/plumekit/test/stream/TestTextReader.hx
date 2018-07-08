@@ -1,14 +1,15 @@
 package plumekit.test.stream;
 
+import plumekit.stream.ReadScanResult;
 import callnest.Task;
 import callnest.TaskTools;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
-import plumekit.stream.ReadResult;
-import plumekit.stream.StreamException.BufferFullException;
 import plumekit.stream.TextReader;
 import utest.Assert;
+
+using StringTools;
 
 
 class TestTextReader {
@@ -69,14 +70,17 @@ class TestTextReader {
             return textReader.readLine(keepEnd).continueWith(readLineCallback);
         };
 
-        readLineCallback = function (task:Task<ReadResult<String>>) {
+        readLineCallback = function (task:Task<ReadScanResult<String>>) {
             switch (task.getResult()) {
-                case ReadResult.Success(line):
+                case ReadScanResult.Success(line):
                     lines.push(line);
                     return readIteration();
 
-                case ReadResult.Incomplete(line):
+                case ReadScanResult.Incomplete(line):
                     return TaskTools.fromResult(true);
+
+                case ReadScanResult.OverLimit(line):
+                    return TaskTools.fromResult(false);
             }
         };
 
@@ -99,7 +103,12 @@ class TestTextReader {
 
         textReader.readLine()
             .onComplete(function (task) {
-                Assert.raises(task.getResult, BufferFullException);
+                switch (task.getResult()) {
+                    case ReadScanResult.OverLimit(line):
+                        Assert.isTrue(line.startsWith("Hello worl"));
+                    default:
+                        Assert.fail();
+                }
 
                 done();
             })
