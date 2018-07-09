@@ -18,15 +18,11 @@ class StreamReader implements Reader {
         source.close();
     }
 
-    public function read(?amount:Int):Task<ReadResult<Bytes>> {
-        amount = amount != null ? amount : -1;
-
+    public function read(amount:Int):Task<ReadResult<Bytes>> {
         if (amount >= 0) {
             return readByAmount(amount);
         } else {
-            return readAll().continueWith(function (task) {
-                return TaskTools.fromResult(ReadResult.Success(task.getResult()));
-            });
+            return TaskTools.fromResult(ReadResult.Success(Bytes.alloc(0)));
         }
     }
 

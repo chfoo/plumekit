@@ -66,13 +66,11 @@ class BufferedReader implements Reader {
         });
     }
 
-    public function read(?amount:Int):Task<ReadResult<Bytes>> {
-        amount = amount != null ? amount : -1;
-
+    public function read(amount:Int):Task<ReadResult<Bytes>> {
         if (amount >= 0) {
             return readAmount(amount);
         } else {
-            return readAmountAll();
+            return TaskTools.fromResult(ReadResult.Success(Bytes.alloc(0)));
         }
     }
 
@@ -88,13 +86,6 @@ class BufferedReader implements Reader {
                     var slice = destBytes.sub(0, bytesRead);
                     return TaskTools.fromResult(ReadResult.Incomplete(slice));
             }
-        });
-    }
-
-    function readAmountAll():Task<ReadResult<Bytes>> {
-        return readAll().continueWith(function (task:Task<Bytes>) {
-            var bytes = task.getResult();
-            return TaskTools.fromResult(ReadResult.Success(bytes));
         });
     }
 

@@ -1,5 +1,6 @@
 package plumekit.stream;
 
+import haxe.ds.Option;
 import callnest.Task;
 import callnest.TaskTools;
 import plumekit.text.codec.Decoder;
@@ -28,25 +29,37 @@ class TextReader {
         textScanner = new TextScanner();  // soft limit, don't pass maxBufferSize
     }
 
-    public function read(?amount:Int):Task<String> {
-        amount = amount != null ? amount : -1;
-
-        if (amount >= 0) {
-            return readAmount(amount);
+    public function read(amount:Int):Task<Option<String>> {
+        if (isEOF) {
+            return TaskTools.fromResult(None);
+        } else if (amount > 0) {
+            return readAmount(amount).continueWith(wrapAsSomeCallback);
         } else {
-            return readAll();
+            return TaskTools.fromResult(Some(""));
         }
     }
 
+    function wrapAsSomeCallback(task:Task<String>):Task<Option<String>> {
+        return TaskTools.fromResult(Some(task.getResult()));
+    }
+
     function readAmount(amount:Int):Task<String> {
+        Debug.assert(amount > 0);
+
         if (!textScanner.isEmpty()) {
             return TaskTools.fromResult(textScanner.shiftString(amount));
         }
 
         return streamReader.readOnce(amount).continueWith(function (task) {
             var bytes = task.getResult();
-            var incremental = amount != 0 && bytes.length > 0;
-            return TaskTools.fromResult(decoder.decode(bytes, incremental));
+
+            if (bytes.length > 0) {
+                return TaskTools.fromResult(decoder.decode(bytes, true));
+
+            } else {
+                isEOF = true;
+                return TaskTools.fromResult(decoder.flush());
+            }
         });
     }
 

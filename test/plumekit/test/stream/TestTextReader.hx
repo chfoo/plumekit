@@ -1,22 +1,21 @@
 package plumekit.test.stream;
 
-import plumekit.stream.ReadScanResult;
 import callnest.Task;
 import callnest.TaskTools;
+import haxe.ds.Option;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
+import plumekit.stream.ReadScanResult;
 import plumekit.stream.TextReader;
 import utest.Assert;
-
-using StringTools;
 
 
 class TestTextReader {
     public function new() {
     }
 
-    public function testRead() {
+    public function testReadAmount() {
         var bytes = Bytes.ofString("Hello world!");
         var bytesInput = new BytesInput(bytes);
         var inputStream = new InputStream(bytesInput);
@@ -29,15 +28,45 @@ class TestTextReader {
             Assert.equals("Hello world!", resultText);
         });
 
-        textReader.read(5)
-            .continueWith(function (task) {
-                resultBuffer.add(task.getResult());
+        var readIteration, readCallback;
 
-                return textReader.read();
-            })
+        readIteration = function ():Task<Bool> {
+            return textReader.read(5).continueWith(readCallback);
+        }
+
+        readCallback = function (task:Task<Option<String>>) {
+            switch (task.getResult()) {
+                case Some(text):
+                    resultBuffer.add(text);
+                    return readIteration();
+                case None:
+                    return TaskTools.fromResult(true);
+            }
+        };
+
+        readIteration()
             .onComplete(function (task) {
-                resultBuffer.add(task.getResult());
+                task.getResult();
 
+                done();
+            })
+            .handleException(exceptionHandler);
+    }
+
+    public function testReadAll() {
+        var bytes = Bytes.ofString("Hello world!");
+        var bytesInput = new BytesInput(bytes);
+        var inputStream = new InputStream(bytesInput);
+        var textReader = new TextReader(inputStream);
+
+        var resultText:String = null;
+        var done = Assert.createAsync(function () {
+            Assert.equals("Hello world!", resultText);
+        });
+
+        textReader.readAll()
+            .onComplete(function (task) {
+                resultText = task.getResult();
                 done();
             })
             .handleException(exceptionHandler);
