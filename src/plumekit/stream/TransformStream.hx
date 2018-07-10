@@ -2,7 +2,6 @@ package plumekit.stream;
 
 import callnest.Task;
 import callnest.TaskTools;
-import commonbox.ds.Deque;
 import haxe.io.Bytes;
 import plumekit.stream.StreamException.EndOfFileException;
 
@@ -13,15 +12,16 @@ class TransformStream implements Source {
     public var transformer(default, null):Transformer;
 
     var chunkSize:Int = 8192;
-    var buffer:Bytes;
-    var transformedBuffer:Deque<Int>;
+    var transformedBytes:Bytes;
+    var transformedPosition:Int;
+    var transformedLength:Int = 0;
     var isEOF = false;
 
     public function new(source:Source, transformer:Transformer) {
         this.source = source;
         this.transformer = transformer;
-        buffer = Bytes.alloc(chunkSize);
-        transformedBuffer = new Deque();
+
+        transformer.prepare(source);
     }
 
     function get_readTimeout():Float {
@@ -37,62 +37,55 @@ class TransformStream implements Source {
     }
 
     public function readInto(bytes:Bytes, position:Int, length:Int):Int {
-        if (isEOF) {
+        if (transformedLength == 0 && isEOF) {
             throw new EndOfFileException();
-        } else if (!transformedBuffer.isEmpty()) {
-            return unshiftTransformed(bytes, position, length);
         }
 
-        var transformedBytes = readAndTransform(length);
+        var minLength = Std.int(Math.min(transformedLength, length));
 
-        if (transformedBytes.length <= length) {
-            bytes.blit(position, transformedBytes, 0, transformedBytes.length);
-            return transformedBytes.length;
-        }
+        bytes.blit(position, transformedBytes, transformedPosition, minLength);
+        transformedPosition += minLength;
+        transformedLength -= minLength;
 
-        bytes.blit(position, transformedBytes, 0, length);
-
-        for (index in length...transformedBytes.length) {
-            transformedBuffer.push(transformedBytes.get(index));
-        }
-
-        return length;
-    }
-
-    function unshiftTransformed(bytes:Bytes, position:Int, length:Int):Int {
-        var count = 0;
-
-        for (index in 0...length) {
-            switch (transformedBuffer.shift()) {
-                case Some(byte):
-                    bytes.set(position + index, byte);
-                    count += 1;
-                case None:
-                    break;
-            }
-        }
-
-        return count;
-    }
-
-    function readAndTransform(length:Int):Bytes {
-        length = Std.int(Math.min(length, buffer.length));
-        var sourceBytesRead;
-
-        try {
-            sourceBytesRead = source.readInto(buffer, 0, length);
-        } catch (exception:EndOfFileException) {
-            isEOF = true;
-            return transformer.flush();
-        }
-
-        return transformer.transform(buffer.sub(0, sourceBytesRead));
+        return minLength;
     }
 
     public function readReady():Task<Source> {
-        return source.readReady().continueWith(function (task) {
-            task.getResult();
+        Debug.assert(source != null);
+        return source.readReady().continueWith(sourceReadyCallback);
+    }
+
+    function sourceReadyCallback(task:Task<Source>) {
+        task.getResult();
+
+        if (transformedLength != 0 || isEOF) {
             return TaskTools.fromResult((this:Source));
+        }
+
+        return readAndTransform().continueWith(function (task) {
+            task.getResult();
+
+            return TaskTools.fromResult((this:Source));
+        });
+    }
+
+    function readAndTransform():Task<Int> {
+        Debug.assert(transformedLength == 0, transformedLength);
+
+        return transformer.transform(chunkSize).continueWith(function (task) {
+            switch (task.getResult()) {
+                case Some(bytes):
+                    transformedBytes = bytes;
+                case None:
+                    Debug.assert(!isEOF);
+                    transformedBytes = transformer.flush();
+                    isEOF = true;
+            }
+
+            transformedPosition = 0;
+            transformedLength = transformedBytes.length;
+
+            return TaskTools.fromException(transformedLength);
         });
     }
 }

@@ -1,8 +1,13 @@
 package plumekit.test.stream;
 
+import callnest.Task;
+import callnest.TaskTools;
+import haxe.ds.Option;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
+import plumekit.stream.Source;
+import plumekit.stream.StreamReader;
 import plumekit.stream.TextReader;
 import plumekit.stream.Transformer;
 import utest.Assert;
@@ -11,18 +16,34 @@ using plumekit.stream.PipeTools;
 
 
 class DoublerTransformer implements Transformer {
+    var source:Source;
+    var reader:StreamReader;
+
     public function new() {
     }
 
-    public function transform(chunk:Bytes):Bytes {
-        var newChunk = Bytes.alloc(chunk.length * 2);
+    public function prepare(source:Source) {
+        this.source = source;
+        reader = new StreamReader(source);
+    }
 
-        for (index in 0...chunk.length) {
-            newChunk.set(index * 2, chunk.get(index));
-            newChunk.set(index * 2 + 1, chunk.get(index));
-        }
+    public function transform(amount:Int):Task<Option<Bytes>> {
+        return reader.readOnce(amount).continueWith(function (task) {
+            var chunk = task.getResult();
 
-        return newChunk;
+            if (chunk.length == 0) {
+                return TaskTools.fromResult(None);
+            }
+
+            var newChunk = Bytes.alloc(chunk.length * 2);
+
+            for (index in 0...chunk.length) {
+                newChunk.set(index * 2, chunk.get(index));
+                newChunk.set(index * 2 + 1, chunk.get(index));
+            }
+
+            return TaskTools.fromResult(Some(newChunk));
+        });
     }
 
     public function flush():Bytes {
