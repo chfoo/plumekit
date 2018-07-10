@@ -1,5 +1,6 @@
 package plumekit.test.stream;
 
+import haxe.ds.Option;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.InputStream;
@@ -24,7 +25,7 @@ class TestInputStream {
             var destBytes = Bytes.alloc(100);
             var bytesRead = stream.readInto(destBytes, 0, 5);
 
-            Assert.equals(5, bytesRead);
+            Assert.same(Some(5), bytesRead);
             Assert.equals("Hello", destBytes.sub(0, 5).toString());
 
             stream.close();

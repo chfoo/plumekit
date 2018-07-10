@@ -3,8 +3,8 @@ package plumekit.stream;
 import callnest.Task;
 import callnest.TaskTools;
 import commonbox.ds.Deque;
+import haxe.ds.Option;
 import haxe.io.Bytes;
-import plumekit.stream.StreamException;
 
 
 class BufferedReader implements Reader {
@@ -13,7 +13,8 @@ class BufferedReader implements Reader {
     var maxBufferSize:Int;
     var chunkSize:Int;
 
-    public function new(source:Source, maxBufferSize:Int = 16384, chunkSize:Int = 8192) {
+    public function new(source:Source, maxBufferSize:Int = 16384,
+            chunkSize:Int = 8192) {
         Debug.assert(maxBufferSize > 0);
         Debug.assert(chunkSize > 0);
 
@@ -49,19 +50,20 @@ class BufferedReader implements Reader {
     }
 
     function readUntilFillBuffer(char:Int, fromIndex:Int):Task<ReadScanResult<Bytes>> {
-        return fillBuffer().continueWith(function (task:Task<Int>) {
-            var bytesRead = task.getResult();
-
-            if (bytesRead > 0) {
-                return readUntilIteration(char, fromIndex);
-            } else if (buffer.length == maxBufferSize) {
-                var bytes = Bytes.alloc(buffer.length);
-                shiftBuffer(bytes, 0, buffer.length);
-                return TaskTools.fromResult(ReadScanResult.OverLimit(bytes));
-            } else {
-                var bytes = Bytes.alloc(buffer.length);
-                shiftBuffer(bytes, 0, buffer.length);
-                return TaskTools.fromResult(ReadScanResult.Incomplete(bytes));
+        return fillBuffer().continueWith(function (task:Task<Option<Int>>) {
+            switch(task.getResult()) {
+                case Some(bytesRead):
+                    if (buffer.length == maxBufferSize) {
+                        var bytes = Bytes.alloc(buffer.length);
+                        shiftBuffer(bytes, 0, buffer.length);
+                        return TaskTools.fromResult(ReadScanResult.OverLimit(bytes));
+                    } else {
+                        return readUntilIteration(char, fromIndex);
+                    }
+                case None:
+                    var bytes = Bytes.alloc(buffer.length);
+                    shiftBuffer(bytes, 0, buffer.length);
+                    return TaskTools.fromResult(ReadScanResult.Incomplete(bytes));
             }
         });
     }
@@ -89,7 +91,7 @@ class BufferedReader implements Reader {
         });
     }
 
-    public function readOnce(?amount:Int):Task<Bytes> {
+    public function readOnce(?amount:Int):Task<Option<Bytes>> {
         amount = amount != null ? amount : chunkSize;
 
         if (!buffer.isEmpty()) {
@@ -99,13 +101,13 @@ class BufferedReader implements Reader {
         }
     }
 
-    function readOnceFromBuffer(amount:Int):Task<Bytes> {
+    function readOnceFromBuffer(amount:Int):Task<Option<Bytes>> {
         amount = Std.int(Math.min(amount, buffer.length));
 
         var bytes = Bytes.alloc(amount);
         shiftBuffer(bytes, 0, amount);
 
-        return TaskTools.fromResult(bytes);
+        return TaskTools.fromResult(Some(bytes));
     }
 
     public function readInto(bytes:Bytes, position:Int, length:Int):Task<ReadIntoResult> {
@@ -126,9 +128,11 @@ class BufferedReader implements Reader {
             .continueWith(callback);
     }
 
-    public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Int> {
+    public function readIntoOnce(bytes:Bytes, position:Int, length:Int)
+            :Task<Option<Int>> {
         if (!buffer.isEmpty()) {
-            return TaskTools.fromResult(shiftBuffer(bytes, position, length));
+            return TaskTools.fromResult(
+                Some(shiftBuffer(bytes, position, length)));
         } else {
             return streamReader.readIntoOnce(bytes, position, length);
         }
@@ -169,19 +173,22 @@ class BufferedReader implements Reader {
         return count;
     }
 
-    function fillBuffer():Task<Int> {
+    function fillBuffer():Task<Option<Int>> {
         var spaceAvailable = maxBufferSize - buffer.length;
         var bytesToRead = Std.int(Math.min(chunkSize, spaceAvailable));
         var task = streamReader.readOnce(bytesToRead);
 
-        return task.continueWith(function (task:Task<Bytes>) {
-            var bytes = task.getResult();
+        return task.continueWith(function (task:Task<Option<Bytes>>) {
+            switch (task.getResult()) {
+                case Some(bytes):
+                    for (index in 0...bytes.length) {
+                        buffer.push(bytes.get(index));
+                    }
 
-            for (index in 0...bytes.length) {
-                buffer.push(bytes.get(index));
+                    return TaskTools.fromResult(Some(bytes.length));
+                case None:
+                    return TaskTools.fromResult(None);
             }
-
-            return TaskTools.fromResult(bytes.length);
         });
     }
 }

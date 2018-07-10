@@ -51,14 +51,12 @@ class TextReader {
         }
 
         return streamReader.readOnce(amount).continueWith(function (task) {
-            var bytes = task.getResult();
-
-            if (bytes.length > 0) {
-                return TaskTools.fromResult(decoder.decode(bytes, true));
-
-            } else {
-                isEOF = true;
-                return TaskTools.fromResult(decoder.flush());
+            switch (task.getResult()) {
+                case Some(bytes):
+                    return TaskTools.fromResult(decoder.decode(bytes, true));
+                case None:
+                    isEOF = true;
+                    return TaskTools.fromResult(decoder.flush());
             }
         });
     }

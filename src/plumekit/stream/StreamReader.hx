@@ -2,9 +2,9 @@ package plumekit.stream;
 
 import callnest.Task;
 import callnest.TaskTools;
+import haxe.ds.Option;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
-import plumekit.stream.StreamException.EndOfFileException;
 
 
 class StreamReader implements Reader {
@@ -40,13 +40,17 @@ class StreamReader implements Reader {
         });
     }
 
-    public function readOnce(?amount:Int):Task<Bytes> {
+    public function readOnce(?amount:Int):Task<Option<Bytes>> {
         amount = amount != null ? amount : 8192;
         var bytes = Bytes.alloc(amount);
 
         return readIntoOnce(bytes, 0, amount).continueWith(function (task) {
-            var bytesRead = task.getResult();
-            return TaskTools.fromResult(bytes.sub(0, bytesRead));
+            switch (task.getResult()) {
+                case Some(bytesRead):
+                    return TaskTools.fromResult(Some(bytes.sub(0, bytesRead)));
+                case None:
+                    return TaskTools.fromResult(None);
+            }
         });
     }
 
@@ -55,7 +59,7 @@ class StreamReader implements Reader {
         return impl.readInto(bytes, position, length);
     }
 
-    public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Int> {
+    public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Option<Int>> {
         var impl = new ReadIntoImpl(source);
         return impl.readIntoOnce(bytes, position, length);
     }
@@ -91,7 +95,7 @@ private class ReadIntoImpl {
         }
     }
 
-    public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Int> {
+    public function readIntoOnce(bytes:Bytes, position:Int, length:Int):Task<Option<Int>> {
         this.destBytes = bytes;
         this.position = position;
         this.length = length;
@@ -100,13 +104,9 @@ private class ReadIntoImpl {
         return source.readReady().continueWith(readOnceReadyCallback);
     }
 
-    function readOnceReadyCallback(task:Task<Source>):Task<Int> {
-        try {
-            bytesRead = source.readInto(destBytes, position, length);
-        } catch (exception:EndOfFileException) {
-            return TaskTools.fromResult(0);
-        }
-        return TaskTools.fromResult(bytesRead);
+    function readOnceReadyCallback(task:Task<Source>):Task<Option<Int>> {
+        return TaskTools.fromResult(
+            source.readInto(destBytes, position, length));
     }
 
     function readIteration():Task<ReadIntoResult> {
@@ -121,10 +121,12 @@ private class ReadIntoImpl {
         Debug.assert(index < destBytes.length);
         Debug.assert(remain > 0);
 
-        try {
-            bytesRead += source.readInto(destBytes, index, remain);
-        } catch (exception:EndOfFileException) {
-            return TaskTools.fromResult(ReadIntoResult.Incomplete(bytesRead));
+        switch (source.readInto(destBytes, index, remain)) {
+            case Some(resultBytesRead):
+                bytesRead += resultBytesRead;
+            case None:
+                return TaskTools.fromResult(
+                    ReadIntoResult.Incomplete(bytesRead));
         }
 
         remain = length - bytesRead;
@@ -158,15 +160,12 @@ private class ReadAllImpl {
     }
 
     function readReadyCallback(task:Task<Source>):Task<Bytes> {
-        var iterationBytesRead;
-
-        try {
-            iterationBytesRead = source.readInto(chunkBuffer, 0, chunkBuffer.length);
-        } catch (exception:EndOfFileException) {
-            return TaskTools.fromResult(bytesBuffer.getBytes());
+        switch (source.readInto(chunkBuffer, 0, chunkBuffer.length)) {
+            case Some(iterationBytesRead):
+                bytesBuffer.addBytes(chunkBuffer, 0, iterationBytesRead);
+            case None:
+                return TaskTools.fromResult(bytesBuffer.getBytes());
         }
-
-        bytesBuffer.addBytes(chunkBuffer, 0, iterationBytesRead);
 
         return readIteration();
     }

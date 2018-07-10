@@ -28,22 +28,27 @@ class DoublerTransformer implements Transformer {
     }
 
     public function transform(amount:Int):Task<Option<Bytes>> {
-        return reader.readOnce(amount).continueWith(function (task) {
-            var chunk = task.getResult();
+        return reader.readOnce(amount).continueWith(readerCallback);
+    }
 
-            if (chunk.length == 0) {
+    function readerCallback(task:Task<Option<Bytes>>) {
+        switch (task.getResult()) {
+            case Some(chunk):
+                if (chunk.length == 0) {
+                    return TaskTools.fromResult(None);
+                }
+
+                var newChunk = Bytes.alloc(chunk.length * 2);
+
+                for (index in 0...chunk.length) {
+                    newChunk.set(index * 2, chunk.get(index));
+                    newChunk.set(index * 2 + 1, chunk.get(index));
+                }
+
+                return TaskTools.fromResult(Some(newChunk));
+            case None:
                 return TaskTools.fromResult(None);
-            }
-
-            var newChunk = Bytes.alloc(chunk.length * 2);
-
-            for (index in 0...chunk.length) {
-                newChunk.set(index * 2, chunk.get(index));
-                newChunk.set(index * 2 + 1, chunk.get(index));
-            }
-
-            return TaskTools.fromResult(Some(newChunk));
-        });
+        }
     }
 
     public function flush():Bytes {

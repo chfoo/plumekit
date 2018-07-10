@@ -1,6 +1,7 @@
 package plumekit.test.stream;
 
 import callnest.Task;
+import haxe.ds.Option;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import plumekit.stream.BufferedReader;
@@ -119,9 +120,13 @@ class TestBufferedReader {
             .continueWith(function (task) {
                 return reader.readOnce(5);
             }) // => 123 [456789]
-            .onComplete(function (task:Task<Bytes>) {
-                var bytes = task.getResult();
-                Assert.equals("123", bytes.toString());
+            .onComplete(function (task:Task<Option<Bytes>>) {
+                switch (task.getResult()) {
+                    case Some(bytes):
+                        Assert.equals("123", bytes.toString());
+                    case None:
+                        Assert.fail();
+                }
 
                 done();
             })
@@ -169,10 +174,10 @@ class TestBufferedReader {
             }) // => 123 [456789]
             .continueWith(function (task) {
                 var bytesRead = task.getResult();
-                Assert.equals(3, bytesRead);
+                Assert.same(Some(3), bytesRead);
                 return reader.readIntoOnce(bytes, 3, 6);
             }) // => 456789 []
-            .onComplete(function (task:Task<Int>) {
+            .onComplete(function (task:Task<Option<Int>>) {
                 task.getResult();
                 Assert.equals("123456789", bytes.toString());
 

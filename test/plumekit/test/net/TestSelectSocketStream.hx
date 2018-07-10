@@ -50,10 +50,14 @@ class TestSelectSocketStream {
                 task.getResult();
 
                 var bytes = Bytes.alloc(1024);
-                var bytesRead = stream.readInto(bytes, 0, bytes.length);
-                Assert.notEquals(0, bytesRead);
-
-                return TaskTools.fromResult(bytes.sub(0, bytesRead));
+                switch (stream.readInto(bytes, 0, bytes.length)) {
+                    case Some(bytesRead):
+                        Assert.notEquals(0, bytesRead);
+                        return TaskTools.fromResult(bytes.sub(0, bytesRead));
+                    case None:
+                        Assert.fail();
+                        return TaskTools.fromResult(Bytes.alloc(0));
+                }
             })
             .onComplete(function (task) {
                 result = task.getResult();

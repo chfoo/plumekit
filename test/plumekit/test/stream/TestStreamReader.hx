@@ -2,6 +2,7 @@ package plumekit.test.stream;
 
 import callnest.TaskTools;
 import callnest.Task;
+import haxe.ds.Option;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import haxe.io.BytesInput;
@@ -60,7 +61,7 @@ class TestStreamReader {
 
         streamReader.readIntoOnce(resultBytes, 0, 5).onComplete(function (task) {
             var bytesRead = task.getResult();
-            Assert.equals(5, bytesRead);
+            Assert.same(Some(5), bytesRead);
             Assert.equals("H".code, resultBytes.get(0));
 
             done();
@@ -127,8 +128,12 @@ class TestStreamReader {
         var done = Assert.createAsync();
 
         streamReader.readOnce(5).onComplete(function (task) {
-            var bytes = task.getResult();
-            Assert.equals("H".code, bytes.get(0));
+            switch (task.getResult()) {
+                case Some(bytes):
+                    Assert.equals("H".code, bytes.get(0));
+                case None:
+                    Assert.fail();
+            }
             done();
         }).handleException(exceptionHandler);
     }

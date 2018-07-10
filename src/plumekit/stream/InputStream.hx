@@ -2,7 +2,9 @@ package plumekit.stream;
 
 import callnest.Task;
 import callnest.TaskTools;
+import haxe.ds.Option;
 import haxe.io.Bytes;
+import haxe.io.Eof;
 import haxe.io.Input;
 
 
@@ -28,9 +30,11 @@ class InputStream implements Source {
         input.close();
     }
 
-    public function readInto(bytes:Bytes, position:Int, length:Int):Int {
+    public function readInto(bytes:Bytes, position:Int, length:Int):Option<Int> {
         try {
-            return input.readBytes(bytes, position, length);
+            return Some(input.readBytes(bytes, position, length));
+        } catch (exception:Eof) {
+            return None;
         } catch (exception:Any) {
             throw StreamException.wrapHaxeException(exception);
         }

@@ -2,8 +2,8 @@ package plumekit.stream;
 
 import callnest.Task;
 import callnest.TaskTools;
+import haxe.ds.Option;
 import haxe.io.Bytes;
-import plumekit.stream.StreamException.EndOfFileException;
 
 
 class TransformStream implements Source {
@@ -36,9 +36,9 @@ class TransformStream implements Source {
         source.close();
     }
 
-    public function readInto(bytes:Bytes, position:Int, length:Int):Int {
+    public function readInto(bytes:Bytes, position:Int, length:Int):Option<Int> {
         if (transformedLength == 0 && isEOF) {
-            throw new EndOfFileException();
+            return None;
         }
 
         var minLength = Std.int(Math.min(transformedLength, length));
@@ -47,7 +47,7 @@ class TransformStream implements Source {
         transformedPosition += minLength;
         transformedLength -= minLength;
 
-        return minLength;
+        return Some(minLength);
     }
 
     public function readReady():Task<Source> {

@@ -2,7 +2,9 @@ package plumekit.net;
 
 import callnest.Task;
 import callnest.TaskTools;
+import haxe.ds.Option;
 import haxe.io.Bytes;
+import haxe.io.Eof;
 import plumekit.stream.Sink;
 import plumekit.stream.Source;
 import sys.net.Socket;
@@ -42,9 +44,11 @@ class SelectSocketStream implements Source implements Sink {
         socket.close();
     }
 
-    public function readInto(bytes:Bytes, position:Int, length:Int):Int {
+    public function readInto(bytes:Bytes, position:Int, length:Int):Option<Int> {
         try {
-            return socket.input.readBytes(bytes, position, length);
+            return Some(socket.input.readBytes(bytes, position, length));
+        } catch (exception:Eof) {
+            return None;
         } catch (exception:Any) {
             throw NetException.wrapHaxeException(exception);
         }
