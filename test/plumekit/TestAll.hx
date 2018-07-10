@@ -12,6 +12,7 @@ class TestAll {
         addNetCases(runner);
         runner.addCases(plumekit.test.stream);
         runner.addCases(plumekit.test.text);
+        runner.addCases(plumekit.test.www);
 
         Report.create(runner);
         runner.run();
