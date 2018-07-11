@@ -10,6 +10,7 @@ class TestAll {
 
         addEventLoopCases(runner);
         addNetCases(runner);
+        runner.addCases(plumekit.test.netdata);
         runner.addCases(plumekit.test.stream);
         runner.addCases(plumekit.test.text);
         runner.addCases(plumekit.test.www);
