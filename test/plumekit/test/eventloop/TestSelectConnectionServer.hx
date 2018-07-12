@@ -9,18 +9,15 @@ import plumekit.net.ConnectionServer;
 import plumekit.net.SelectConnection;
 import plumekit.net.SelectDispatcher;
 import plumekit.stream.BufferedReader;
-import plumekit.stream.ReadResult;
 import plumekit.stream.ReadScanResult;
 import plumekit.stream.StreamReader;
 import plumekit.stream.StreamWriter;
 import utest.Assert;
 
-using plumekit.eventloop.EventLoopTools;
+using plumekit.TaskTestTools;
 
 
 class TestSelectConnectionServer {
-    static inline var TEST_TIMEOUT = 10000;
-    static inline var LOOP_DURATION = 5.0;
     static inline var SOCKET_TIMEOUT = 5.0;
 
     var dispatcher:SelectDispatcher;
@@ -55,7 +52,7 @@ class TestSelectConnectionServer {
             clientTasks.push(clientConnect());
         }
 
-        var done = Assert.createAsync(function() {
+        var done = TaskTestTools.startAsync(function() {
             for (clientTask in clientTasks) {
                 try {
                     var text = clientTask.getResult().toString();
@@ -64,7 +61,7 @@ class TestSelectConnectionServer {
                     Assert.fail(exception);
                 }
             }
-        }, TEST_TIMEOUT);
+        });
 
         TaskTools.whenAll(clientTasks)
             .continueWith(function (tasks) {
@@ -81,7 +78,7 @@ class TestSelectConnectionServer {
                 done();
             });
 
-        eventLoop.startTimed(LOOP_DURATION);
+        eventLoop.startTimedTest();
     }
 
     function serverHandlerCallback(connection:Connection) {

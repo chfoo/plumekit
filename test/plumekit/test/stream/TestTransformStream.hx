@@ -67,7 +67,7 @@ class TestTransformStream {
         var inputStream = new InputStream(bytesInput)
             .withTransform(new DoublerTransformer());
         var textReader = new TextReader(inputStream);
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         textReader.readAll()
             .onComplete(function (task) {

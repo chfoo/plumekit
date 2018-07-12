@@ -22,7 +22,7 @@ class TestTextReader {
         var textReader = new TextReader(inputStream);
 
         var resultBuffer = new StringBuf();
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             var resultText = resultBuffer.toString();
 
             Assert.equals("Hello world!", resultText);
@@ -60,7 +60,7 @@ class TestTextReader {
         var textReader = new TextReader(inputStream);
 
         var resultText:String = null;
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             Assert.equals("Hello world!", resultText);
         });
 
@@ -86,7 +86,7 @@ class TestTextReader {
             "Cat\n", "Dog\r\n", "Bird\r", "Fish\n"
         ];
         var lines = [];
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             Assert.equals(8, lines.length);
             Assert.same(expectedLines, lines);
         });
@@ -127,7 +127,7 @@ class TestTextReader {
         var inputStream = new InputStream(bytesInput);
         var textReader = new TextReader(inputStream, 6, 2);
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         textReader.readLine(true)
             .continueWith(function (task) {

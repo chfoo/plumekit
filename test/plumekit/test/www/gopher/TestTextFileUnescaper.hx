@@ -20,7 +20,7 @@ class TestTextFileUnescaper {
             .withTransform(new TextFileUnescaper());
         var reader = new TextReader(stream);
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         reader.readAll()
             .onComplete(function (task) {

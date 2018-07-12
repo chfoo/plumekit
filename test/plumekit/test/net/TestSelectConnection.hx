@@ -7,11 +7,10 @@ import plumekit.net.SelectDispatcher;
 import utest.Assert;
 
 using plumekit.eventloop.EventLoopTools;
+using plumekit.TaskTestTools;
 
 
 class TestSelectConnection {
-    static inline var TEST_TIMEOUT = 10000;
-    static inline var LOOP_DURATION = 5.0;
     static inline var SOCKET_TIMEOUT = 5.0;
 
     public function new() {
@@ -25,9 +24,9 @@ class TestSelectConnection {
 
         var gotAccept = false;
 
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             Assert.isTrue(gotAccept);
-        }, TEST_TIMEOUT);
+        });
 
         serverConnection.connectTimeout = SOCKET_TIMEOUT;
         serverConnection.bind("localhost", 0);
@@ -56,7 +55,7 @@ class TestSelectConnection {
             })
             .handleException(exceptionHandler);
 
-        eventLoop.startTimed(LOOP_DURATION);
+        eventLoop.startTimedTest();
     }
 
     function exceptionHandler(exception:Any) {
@@ -69,7 +68,7 @@ class TestSelectConnection {
         var eventLoop = new SelectEventLoop(dispatcher);
         var connection = new SelectConnection(dispatcher);
 
-        var done = Assert.createAsync(TEST_TIMEOUT);
+        var done = TaskTestTools.startAsync();
 
         connection.connectTimeout = SOCKET_TIMEOUT;
         connection.connect("localhost", 4).onComplete(function (task) {
@@ -77,6 +76,6 @@ class TestSelectConnection {
             done();
         });
 
-        eventLoop.startTimed(LOOP_DURATION);
+        eventLoop.startTimedTest();
     }
 }

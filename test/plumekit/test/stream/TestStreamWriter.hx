@@ -46,7 +46,7 @@ class TestStreamWriter {
             }
         }
 
-        done = Assert.createAsync(function () {
+        done = TaskTestTools.startAsync(function () {
             var result = bytesOutput.getBytes().toString();
 
             Assert.equals(expected, result);

@@ -39,7 +39,7 @@ class TestStreamReader {
     public function testReadInto() {
         var streamReader = getStreamReader();
         var resultBytes = Bytes.alloc(10);
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         streamReader.readInto(resultBytes, 0, 5).onComplete(function (task) {
             switch (task.getResult()) {
@@ -57,7 +57,7 @@ class TestStreamReader {
         var streamReader = getStreamReader();
 
         var resultBytes = Bytes.alloc(10);
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         streamReader.readIntoOnce(resultBytes, 0, 5).onComplete(function (task) {
             var bytesRead = task.getResult();
@@ -73,7 +73,7 @@ class TestStreamReader {
         var streamReader = getStreamReader();
         var text = getSampleText();
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         streamReader.readAll().onComplete(function (task) {
             var resultBytes = task.getResult();
@@ -89,7 +89,7 @@ class TestStreamReader {
         var text = getSampleText();
 
         var resultBuf = new BytesBuffer();
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             var resultBytes = resultBuf.getBytes();
 
             Assert.equals(text, resultBytes.toString());
@@ -125,7 +125,7 @@ class TestStreamReader {
     public function testReadOnce() {
         var streamReader = getStreamReader();
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         streamReader.readOnce(5).onComplete(function (task) {
             switch (task.getResult()) {

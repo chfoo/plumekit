@@ -22,7 +22,7 @@ class TestBufferedReader {
         var stream = new InputStream(input);
         var reader = new BufferedReader(stream, 16384, 2);
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         function callback(task:Task<ReadScanResult<Bytes>>) {
             var result = task.getResult();
@@ -63,7 +63,7 @@ class TestBufferedReader {
 
     public function testReadAll() {
         var reader = getReader();
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         reader.readUntil("0".code)
             .continueWith(readUntilCallbackHelper) // => 0 [123|456789]
@@ -81,7 +81,7 @@ class TestBufferedReader {
 
     public function testRead() {
         var reader = getReader();
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         reader.readUntil("0".code)
             .continueWith(readUntilCallbackHelper) // => 0 [123|456789]
@@ -113,7 +113,7 @@ class TestBufferedReader {
 
     function testReadOnce() {
         var reader = getReader();
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         reader.readUntil("0".code)
             .continueWith(readUntilCallbackHelper) // => 0 [123|456789]
@@ -135,7 +135,7 @@ class TestBufferedReader {
 
     function testReadInto() {
         var reader = getReader();
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
         var bytes = Bytes.alloc(9);
 
         reader.readUntil("0".code)
@@ -163,7 +163,7 @@ class TestBufferedReader {
 
     function testReadIntoOnce() {
         var reader = getReader();
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
         var bytes = Bytes.alloc(9);
 
         reader.readUntil("0".code)
@@ -192,7 +192,7 @@ class TestBufferedReader {
         var stream = new InputStream(input);
         var reader = new BufferedReader(stream, 10, 2);
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         function callback(task:Task<ReadScanResult<Bytes>>) {
             switch (task.getResult()) {

@@ -16,7 +16,7 @@ class TestInputStream {
         var bytesInput = new BytesInput(bytes);
         var stream = new InputStream(bytesInput);
 
-        var done = Assert.createAsync();
+        var done = TaskTestTools.startAsync();
 
         stream.readReady().onComplete(function (task) {
             var stream_ = task.getResult();

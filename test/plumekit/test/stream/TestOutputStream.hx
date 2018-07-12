@@ -15,7 +15,7 @@ class TestOutputStream {
         var bytesOutput = new BytesOutput();
         var stream = new OutputStream(bytesOutput);
 
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             var resultBytes = bytesOutput.getBytes();
 
             Assert.equals(bytes.length, resultBytes.length);

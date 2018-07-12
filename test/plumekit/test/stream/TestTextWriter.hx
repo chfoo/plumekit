@@ -15,7 +15,7 @@ class TestTextWriter {
         var outputStream = new OutputStream(bytesOutput);
         var textWriter = new TextWriter(outputStream);
 
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             var bytes = bytesOutput.getBytes();
             Assert.equals(
                 "F09F92BE48656C6C6F20776F726C6421",

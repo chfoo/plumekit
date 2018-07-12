@@ -9,12 +9,10 @@ import plumekit.net.SelectDispatcher;
 import plumekit.net.SelectSocketStream;
 import plumekit.eventloop.SelectEventLoop;
 
-using plumekit.eventloop.EventLoopTools;
+using plumekit.TaskTestTools;
 
 
 class TestSelectSocketStream {
-    static inline var TEST_TIMEOUT = 10000;
-    static inline var LOOP_DURATION = 5.0;
     static inline var SOCKET_TIMEOUT = 5.0;
 
     public function new() {
@@ -26,9 +24,9 @@ class TestSelectSocketStream {
         var socket = new Socket();
         var stream = new SelectSocketStream(socket, dispatcher);
         var result:Bytes = null;
-        var done = Assert.createAsync(function () {
+        var done = TaskTestTools.startAsync(function () {
             Assert.notNull(result);
-        }, TEST_TIMEOUT);
+        });
 
         socket.setTimeout(SOCKET_TIMEOUT);
         connectSocket(socket);
@@ -67,7 +65,7 @@ class TestSelectSocketStream {
             })
             .handleException(exceptionHandler);
 
-        eventLoop.startTimed(LOOP_DURATION);
+        eventLoop.startTimedTest();
     }
 
     function connectSocket(socket:Socket) {
