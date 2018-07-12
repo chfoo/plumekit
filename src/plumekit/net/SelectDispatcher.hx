@@ -60,6 +60,16 @@ class SelectDispatcher {
         this.timeout = Math.min(this.timeout, timeout);
     }
 
+    public function closeSocket(socket:Socket) {
+        readArray.remove(socket);
+        writeArray.remove(socket);
+        otherArray.remove(socket);
+        readEntries.remove(socket);
+        writeEntries.remove(socket);
+        otherEntries.remove(socket);
+        socket.close();
+    }
+
     public function waitRead(socket:Socket, ?timeout:Float):Task<Socket> {
         timeout = floatOrInfinite(timeout);
         updateTimeout(timeout);

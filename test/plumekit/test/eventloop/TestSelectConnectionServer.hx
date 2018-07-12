@@ -33,7 +33,7 @@ class TestSelectConnectionServer {
         eventLoop = new SelectEventLoop(dispatcher);
 
         var connectionFactory = SelectConnection.new.bind(null, dispatcher);
-        server = new ConnectionServer(connectionFactory, serverHandlerCallback);
+        server = new ConnectionServer(serverHandlerCallback, 3, connectionFactory);
     }
 
     function startServer() {
@@ -41,9 +41,9 @@ class TestSelectConnectionServer {
         trace('Server on port ${server.hostAddress().port}');
     }
 
-    function stopServer() {
+    function stopServer():Task<ConnectionServer> {
         server.stop();
-        serverTask.getResult();
+        return serverTask;
     }
 
     public function test() {
@@ -66,13 +66,20 @@ class TestSelectConnectionServer {
             }
         }, TEST_TIMEOUT);
 
-        TaskTools.whenAll(clientTasks).onComplete(function (tasks) {
-            trace('stopping');
-            stopServer();
-            eventLoop.stop();
+        TaskTools.whenAll(clientTasks)
+            .continueWith(function (tasks) {
+                trace('stopping');
 
-            done();
-        });
+                return stopServer();
+            })
+            .onComplete(function (task) {
+                trace('stopped');
+
+                task.getResult();
+                eventLoop.stop();
+
+                done();
+            });
 
         eventLoop.startTimed(LOOP_DURATION);
     }
@@ -82,7 +89,7 @@ class TestSelectConnectionServer {
         var writer = new StreamWriter(connection.sink);
         trace("server handler callback");
 
-        reader.readUntil("\n".code)
+        return reader.readUntil("\n".code)
             .continueWith(function (task) {
                 switch (task.getResult()) {
                     case ReadScanResult.Success(bytes):
@@ -94,10 +101,12 @@ class TestSelectConnectionServer {
                         return TaskTools.fromResult(0);
                 }
             })
-            .onComplete(function (task) {
+            .continueWith(function (task) {
                 trace("server handler closing");
                 connection.close();
                 task.getResult();
+
+                return TaskTools.fromResult(connection);
             })
             .handleException(exceptionHandler);
     }

@@ -55,7 +55,7 @@ class SelectConnection implements Connection {
     }
 
     public function close() {
-        socket.close();
+        dispatcher.closeSocket(socket);
     }
 
     public function connect(hostname:String, port:Int):Task<Connection> {
