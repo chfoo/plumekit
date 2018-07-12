@@ -3,9 +3,9 @@ package plumekit.test.eventloop;
 import callnest.Task;
 import callnest.TaskTools;
 import haxe.io.Bytes;
+import plumekit.eventloop.ConnectionServer;
 import plumekit.eventloop.SelectEventLoop;
 import plumekit.net.Connection;
-import plumekit.net.ConnectionServer;
 import plumekit.net.SelectConnection;
 import plumekit.net.SelectDispatcher;
 import plumekit.stream.BufferedReader;
@@ -28,9 +28,7 @@ class TestSelectConnectionServer {
     public function new() {
         dispatcher = new SelectDispatcher();
         eventLoop = new SelectEventLoop(dispatcher);
-
-        var connectionFactory = SelectConnection.new.bind(null, dispatcher);
-        server = new ConnectionServer(serverHandlerCallback, 3, connectionFactory);
+        server = new ConnectionServer(serverHandlerCallback, 3, eventLoop);
     }
 
     function startServer() {

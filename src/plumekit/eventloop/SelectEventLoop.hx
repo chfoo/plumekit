@@ -1,7 +1,9 @@
 package plumekit.eventloop;
 
-import haxe.Timer;
 import haxe.MainLoop;
+import haxe.Timer;
+import plumekit.net.Connection;
+import plumekit.net.SelectConnection;
 import plumekit.net.SelectDispatcher;
 
 
@@ -48,6 +50,10 @@ class SelectEventLoop implements EventLoop {
         event.delay(delay);
 
         return new SelectEventHandle(event);
+    }
+
+    public function newConnection():Connection {
+        return new SelectConnection(dispatcher);
     }
 }
 

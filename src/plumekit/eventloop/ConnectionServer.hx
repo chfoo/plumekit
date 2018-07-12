@@ -1,5 +1,7 @@
-package plumekit.net;
+package plumekit.eventloop;
 
+import plumekit.net.ConnectionAddress;
+import plumekit.net.Connection;
 import commonbox.ds.Set;
 import callnest.Task;
 import callnest.TaskTools;
@@ -15,7 +17,7 @@ private enum ServerState {
 
 
 class ConnectionServer {
-    var connectionFactory:Void->Connection;
+    var eventLoop:EventLoop;
     var handlerCallback:Connection->Task<Connection>;
     var state = Ready;
     var serverConnection:Connection;
@@ -24,15 +26,14 @@ class ConnectionServer {
     var handlerTasks:Set<Task<Connection>>;
 
     public function new(handlerCallback:Connection->Task<Connection>,
-            concurrentLimit:Int = 1000,
-            ?connectionFactory:Void->Connection) {
-        if (connectionFactory == null) {
-            connectionFactory = DefaultConnection.newConnection;
+            concurrentLimit:Int = 1000, ?eventLoop:EventLoop) {
+        if (eventLoop == null) {
+            eventLoop = DefaultEventLoop.instance();
         }
 
         this.handlerCallback = handlerCallback;
         this.concurrentLimit = concurrentLimit;
-        this.connectionFactory = connectionFactory;
+        this.eventLoop = eventLoop;
         handlerTasks = new Set();
     }
 
@@ -46,7 +47,7 @@ class ConnectionServer {
         }
 
         state = Running;
-        serverConnection = connectionFactory();
+        serverConnection = eventLoop.newConnection();
 
         serverConnection.bind(hostname, port);
         serverConnection.listen(8);
