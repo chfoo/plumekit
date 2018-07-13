@@ -12,6 +12,7 @@ class DirectoryEntity {
     public var host:String;
     public var port:Int;
     public var extra:String = "";
+    public var raw:String;
 
     public function new(type:ItemType, userName:String, selector:String, host:String, port:Int) {
         this.type = type;
@@ -37,6 +38,7 @@ class DirectoryEntity {
         );
 
         directoryEntity.extra = pattern.matched(6);
+        directoryEntity.raw = line;
 
         return directoryEntity;
     }

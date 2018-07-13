@@ -55,7 +55,7 @@ class ProtocolReaderWriter {
     public function writeSelector(selector:String):Task<String> {
         throwIfNewlines(selector);
 
-        return textWriter.write(selector).continueWith(function (task) {
+        return textWriter.write('$selector\r\n').continueWith(function (task) {
             task.getResult();
             return TaskTools.fromResult(selector);
         });
@@ -91,20 +91,20 @@ class ProtocolReaderWriter {
             });
     }
 
-    public function getTextFile():Source {
-        return source.withTransform(new TextFileUnescaper());
+    public function getFile(textMode:Bool = false):Source {
+        if (textMode) {
+            return source.withTransform(new TextFileUnescaper());
+        } else {
+            return source;
+        }
     }
 
-    public function putTextFile(textFile:Source):PipeTransfer {
-        return new PipeTransfer(
-            source.withTransform(new TextFileEscaper()), sink);
-    }
-
-    public function getFile():Source {
-        return source;
-    }
-
-    public function putFile(file:Source):PipeTransfer {
-        return new PipeTransfer(source, sink);
+    public function putFile(file:Source, textMode:Bool = false):PipeTransfer {
+        if (textMode) {
+            return new PipeTransfer(
+                file.withTransform(new TextFileEscaper()), sink);
+        } else {
+            return new PipeTransfer(file, sink);
+        }
     }
 }
