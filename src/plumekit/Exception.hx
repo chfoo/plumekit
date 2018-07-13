@@ -2,8 +2,14 @@ package plumekit;
 
 
 class Exception extends haxe.Exception {
+    public static var fullStackString = false;
+
     override function toString():String {
-        return '[${Type.getClassName(Type.getClass(this))} ${message}]';
+        if (fullStackString) {
+            return super.toString();
+        } else {
+            return '[${Type.getClassName(Type.getClass(this))} ${message}]';
+        }
     }
 }
 

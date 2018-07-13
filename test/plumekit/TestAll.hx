@@ -8,6 +8,8 @@ class TestAll {
     public static function main() {
         var runner = new Runner();
 
+        Exception.fullStackString = true;
+
         addEventLoopCases(runner);
         addNetCases(runner);
         runner.addCases(plumekit.test.netdata);
