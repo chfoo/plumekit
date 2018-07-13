@@ -23,7 +23,8 @@ class TestPipeTransfer {
         var pipe = new PipeTransfer(inputStream, outputStream);
 
         var done = TaskTestTools.startAsync(function () {
-            Assert.equals("Hello world!", bytesOutput.getBytes());
+            var bytes = bytesOutput.getBytes();
+            Assert.equals("Hello world!", bytes.toString());
         });
 
         pipe.transferAll()
