@@ -61,6 +61,23 @@ class TestMemoryStream {
             .handleException(TaskTestTools.exceptionHandler);
     }
 
+    public function testGetBytes() {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+
+        var done = TaskTestTools.startAsync(function () {
+            Assert.equals("hello", stream.getBytes().toString());
+        });
+
+        writer.write(Bytes.ofString("hello"))
+            .onComplete(function (task) {
+                task.getResult();
+
+                done();
+            })
+            .handleException(TaskTestTools.exceptionHandler);
+    }
+
     function write(writer:StreamWriter) {
         writer.write(Bytes.ofString("Hello world!"))
             .handleException(TaskTestTools.exceptionHandler);

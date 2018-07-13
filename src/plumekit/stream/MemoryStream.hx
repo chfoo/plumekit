@@ -138,4 +138,17 @@ class MemoryStream implements Source implements Sink {
             writeTaskSource.setResult(this);
         }
     }
+
+    public function getBytes():Bytes {
+        var bytes = Bytes.alloc(buffer.length);
+
+        var index = 0;
+
+        for (byte in buffer) {
+            bytes.set(index, byte);
+            index += 1;
+        }
+
+        return bytes;
+    }
 }
