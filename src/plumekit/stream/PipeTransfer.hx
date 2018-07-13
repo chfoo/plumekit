@@ -11,8 +11,8 @@ class PipeTransfer {
     var sink:Sink;
     var chunkSize:Int;
     var buffer:Bytes;
-    var bufferPosition:Int;
-    var bufferLength:Int;
+    var bufferPosition:Int = 0;
+    var bufferLength:Int = 0;
 
     public function new(source:Source, sink:Sink, chunkSize:Int = 8192) {
         this.source = source;
@@ -43,11 +43,7 @@ class PipeTransfer {
 
         return source.readReady()
             .continueWith(readReadyCallback)
-            .continueWith(function (task) {
-                task.getResult();
-                return sink.writeReady();
-            })
-            .continueWith(writeReadyCallback);
+            .continueWith(bufferFilledCallback);
     }
 
     function readReadyCallback(task:Task<Source>):Task<Option<Int>> {
@@ -63,12 +59,23 @@ class PipeTransfer {
         }
     }
 
+    function bufferFilledCallback(task:Task<Option<Int>>):Task<Option<Int>> {
+        switch (task.getResult()) {
+            case Some(bytesRead):
+                return sink.writeReady().continueWith(writeReadyCallback);
+            case None:
+                return TaskTools.fromResult(None);
+        }
+    }
+
     function writeReadyCallback(task:Task<Sink>):Task<Option<Int>> {
         task.getResult();
 
         var bytesWritten = sink.write(buffer, bufferPosition, bufferLength);
         bufferPosition += bytesWritten;
         bufferLength -= bytesWritten;
+
+        Debug.assert(bufferLength >= 0, bufferLength);
 
         return TaskTools.fromResult(Some(bytesWritten));
     }

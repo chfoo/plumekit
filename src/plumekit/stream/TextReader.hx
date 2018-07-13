@@ -104,14 +104,14 @@ class TextReader {
     }
 
     function fillBuffer():Task<String> {
-        return streamReader.read(chunkSize).continueWith(function (task) {
+        return streamReader.readOnce(chunkSize).continueWith(function (task) {
             var text;
 
             switch (task.getResult()) {
-                case ReadResult.Success(bytes):
+                case Some(bytes):
                     text = decoder.decode(bytes, true);
-                case ReadResult.Incomplete(bytes):
-                    text = decoder.decode(bytes);
+                case None:
+                    text = decoder.flush();
                     isEOF = true;
             }
 
