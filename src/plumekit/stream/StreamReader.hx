@@ -105,6 +105,8 @@ private class ReadIntoImpl {
     }
 
     function readOnceReadyCallback(task:Task<Source>):Task<Option<Int>> {
+        task.getResult();
+
         return TaskTools.fromResult(
             source.readInto(destBytes, position, length));
     }
@@ -114,6 +116,8 @@ private class ReadIntoImpl {
     }
 
     function readReadyCallback(task:Task<Source>):Task<ReadIntoResult> {
+        task.getResult();
+
         var index = position + bytesRead;
         var remain = length - bytesRead;
 
@@ -160,6 +164,8 @@ private class ReadAllImpl {
     }
 
     function readReadyCallback(task:Task<Source>):Task<Bytes> {
+        task.getResult();
+
         switch (source.readInto(chunkBuffer, 0, chunkBuffer.length)) {
             case Some(iterationBytesRead):
                 bytesBuffer.addBytes(chunkBuffer, 0, iterationBytesRead);

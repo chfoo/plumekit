@@ -85,7 +85,7 @@ class TransformStream implements Source {
             transformedPosition = 0;
             transformedLength = transformedBytes.length;
 
-            return TaskTools.fromException(transformedLength);
+            return TaskTools.fromResult(transformedLength);
         });
     }
 }
