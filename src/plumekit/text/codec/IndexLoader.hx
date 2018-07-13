@@ -21,10 +21,16 @@ typedef GB18030Range = {
 
 
 class IndexLoader {
+    static var docCache:Any;
+
     static function loadJson():Any {
+        if (docCache != null) {
+            return docCache;
+        }
+
         var text = Resource.getString("encoding/indexes.json");
-        var doc = Json.parse(text);
-        return doc;
+        docCache = Json.parse(text);
+        return docCache;
     }
 
     static function getArray(encoding:String):Array<Any> {

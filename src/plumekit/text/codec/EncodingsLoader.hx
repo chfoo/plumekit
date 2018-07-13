@@ -11,10 +11,16 @@ typedef EncodingNameInfo = {
 
 
 class EncodingsLoader {
+    static var docCache:Any;
+
     static function loadJson():Any {
+        if (docCache != null) {
+            return docCache;
+        }
+
         var text = Resource.getString("encoding/encodings.json");
-        var doc = Json.parse(text);
-        return doc;
+        docCache = Json.parse(text);
+        return docCache;
     }
 
     public static function getEncodingNameInfos():Map<String,EncodingNameInfo> {
