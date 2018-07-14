@@ -1,8 +1,10 @@
 package plumekit.www.gopher;
 
 import callnest.Task;
-import callnest.TaskTools;
+import callnest.VoidReturn;
 import plumekit.net.Connection;
+
+using callnest.TaskTools;
 
 
 class ServerSession {
@@ -14,16 +16,14 @@ class ServerSession {
         protocol = new ProtocolReaderWriter(connection.source, connection.sink);
     }
 
-    public function process():Task<Connection> {
+    public function process():Task<VoidReturn> {
         return protocol.readSelector()
-            .continueWith(readSelectorCallback)
-            .continueWith(function (task) {
-                task.getResult();
-                return TaskTools.fromResult(connection);
-            });
+            .continueWith(sampleReadSelectorCallback)
+            .continueNext(protocol.writeLastLine)
+            .thenResult(Nothing);
     }
 
-    function readSelectorCallback(task:Task<String>) {
+    function sampleReadSelectorCallback(task:Task<String>):Task<DirectoryEntity> {
         task.getResult();
         var entity = new DirectoryEntity(
             ItemType.Informational,

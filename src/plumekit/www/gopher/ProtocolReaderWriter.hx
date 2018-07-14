@@ -3,7 +3,6 @@ package plumekit.www.gopher;
 import plumekit.stream.ReadScanResult;
 import haxe.ds.Option;
 import callnest.Task;
-import callnest.TaskTools;
 import haxe.io.Bytes;
 import plumekit.Exception.ValueException;
 import plumekit.stream.PipeTransfer;
@@ -13,6 +12,7 @@ import plumekit.stream.TextReader;
 import plumekit.stream.TextWriter;
 import plumekit.www.gopher.GopherException;
 
+using callnest.TaskTools;
 using plumekit.stream.PipeTools;
 using StringTools;
 
@@ -20,6 +20,7 @@ using StringTools;
 class ProtocolReaderWriter {
     static inline var ENCODING_NAME = "Windows-1252";
     static var NEWLINE = Bytes.ofString("\r\n");
+    static inline var LAST_LINE = ".\r\n";
 
     var source:Source;
     var sink:Sink;
@@ -106,5 +107,9 @@ class ProtocolReaderWriter {
         } else {
             return new PipeTransfer(file, sink);
         }
+    }
+
+    public function writeLastLine():Task<String> {
+        return textWriter.write(LAST_LINE).thenResult(LAST_LINE);
     }
 }

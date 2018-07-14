@@ -1,6 +1,7 @@
 package plumekit.www.gopher;
 
 import callnest.Task;
+import callnest.VoidReturn;
 import plumekit.eventloop.ConnectionServer;
 import plumekit.eventloop.EventLoop;
 import plumekit.net.Connection;
@@ -11,7 +12,7 @@ class Server extends ConnectionServer {
         super(processRequest, eventLoop);
     }
 
-    function processRequest(connection:Connection):Task<Connection> {
+    function processRequest(connection:Connection):Task<VoidReturn> {
         var session = newSession(connection);
         return session.process();
     }
