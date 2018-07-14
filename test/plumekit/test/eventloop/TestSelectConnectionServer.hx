@@ -2,6 +2,7 @@ package plumekit.test.eventloop;
 
 import callnest.Task;
 import callnest.TaskTools;
+import callnest.VoidReturn;
 import haxe.io.Bytes;
 import plumekit.eventloop.ConnectionServer;
 import plumekit.eventloop.SelectEventLoop;
@@ -79,7 +80,7 @@ class TestSelectConnectionServer {
         eventLoop.startTimedTest();
     }
 
-    function serverHandlerCallback(connection:Connection) {
+    function serverHandlerCallback(connection:Connection):Task<VoidReturn> {
         var reader = new BufferedReader(connection.source);
         var writer = new StreamWriter(connection.sink);
         trace("server handler callback");
@@ -101,7 +102,7 @@ class TestSelectConnectionServer {
                 connection.close();
                 task.getResult();
 
-                return TaskTools.fromResult(connection);
+                return TaskTools.fromResult(Nothing);
             })
             .handleException(exceptionHandler);
     }

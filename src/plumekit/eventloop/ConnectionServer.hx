@@ -1,11 +1,14 @@
 package plumekit.eventloop;
 
-import plumekit.net.ConnectionAddress;
-import plumekit.net.Connection;
-import commonbox.ds.Set;
 import callnest.Task;
-import callnest.TaskTools;
+import callnest.VoidReturn;
+import commonbox.ds.Set;
+import haxe.CallStack;
 import plumekit.Exception.SystemException;
+import plumekit.net.Connection;
+import plumekit.net.ConnectionAddress;
+
+using callnest.TaskTools;
 
 
 private enum ServerState {
@@ -18,14 +21,14 @@ private enum ServerState {
 
 class ConnectionServer {
     var eventLoop:EventLoop;
-    var handlerCallback:Connection->Task<Connection>;
+    var handlerCallback:Connection->Task<VoidReturn>;
     var state = Ready;
     var serverConnection:Connection;
     var currentAcceptTask:Task<Connection>;
     var concurrentLimit:Int;
-    var handlerTasks:Set<Task<Connection>>;
+    var handlerTasks:Set<Task<VoidReturn>>;
 
-    public function new(handlerCallback:Connection->Task<Connection>,
+    public function new(handlerCallback:Connection->Task<VoidReturn>,
             concurrentLimit:Int = 1000, ?eventLoop:EventLoop) {
         if (eventLoop == null) {
             eventLoop = DefaultEventLoop.instance();
@@ -81,19 +84,28 @@ class ConnectionServer {
         handlerTask.onComplete(handlerCompleteCallback.bind(connection));
 
         if (handlerTasks.length >= concurrentLimit) {
-            return handlerTask.continueWith(function (task) {
-                task.getResult();
-                return acceptIteration();
-            });
+            // Reached max limit, wait for this one to finish instead
+            // of trying more accepts
+            return handlerTask.continueNext(acceptIteration);
         } else {
             return acceptIteration();
         }
     }
 
-    function handlerCompleteCallback(connection:Connection, task:Task<Connection>) {
+    function handlerCompleteCallback(connection:Connection, task:Task<VoidReturn>) {
         connection.close();
         handlerTasks.remove(task);
-        task.getResult();
+
+        try {
+            task.getResult();
+        } catch (exception:Any) {
+            handleException(exception);
+        }
+    }
+
+    function handleException(exception:Any) {
+        trace('Server handler exception: $exception');
+        trace(CallStack.toString(CallStack.exceptionStack()));
     }
 
     function waitForHandlersComplete():Task<ConnectionServer> {
