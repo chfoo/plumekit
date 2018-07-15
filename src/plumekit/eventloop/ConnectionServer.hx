@@ -1,5 +1,6 @@
 package plumekit.eventloop;
 
+import haxe.ds.Option;
 import callnest.Task;
 import callnest.VoidReturn;
 import commonbox.ds.Set;
@@ -78,8 +79,15 @@ class ConnectionServer {
         }
 
         var connection = task.getResult();
+        var handlerTask;
 
-        var handlerTask = handlerCallback(connection);
+        switch executeHandler(connection) {
+            case None:
+                return acceptIteration();
+            case Some(handlerTask_):
+                handlerTask = handlerTask_;
+        }
+
         handlerTasks.add(handlerTask);
         handlerTask.onComplete(handlerCompleteCallback.bind(connection));
 
@@ -89,6 +97,16 @@ class ConnectionServer {
             return handlerTask.continueNext(acceptIteration);
         } else {
             return acceptIteration();
+        }
+    }
+
+    function executeHandler(connection:Connection):Option<Task<VoidReturn>> {
+        try {
+            return Some(handlerCallback(connection));
+        } catch (exception:Any) {
+            handleException(exception);
+            connection.close();
+            return None;
         }
     }
 
