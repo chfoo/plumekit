@@ -30,9 +30,6 @@ class TestOutputStream {
             stream.close();
             done();
 
-        }).handleException(function (exception) {
-            Assert.fail(exception);
-            throw exception;
-        });
+        }).handleException(TaskTestTools.exceptionHandler);
     }
 }

@@ -32,11 +32,6 @@ class TestTextWriter {
                 task.getResult();
                 done();
             })
-            .handleException(exceptionHandler);
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
+            .handleException(TaskTestTools.exceptionHandler);
     }
 }

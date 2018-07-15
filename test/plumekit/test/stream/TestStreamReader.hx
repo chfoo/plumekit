@@ -50,7 +50,7 @@ class TestStreamReader {
             }
 
             done();
-        }).handleException(exceptionHandler);
+        }).handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testReadIntoOnce() {
@@ -66,7 +66,7 @@ class TestStreamReader {
 
             done();
 
-        }).handleException(exceptionHandler);
+        }).handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testReadAll() {
@@ -81,7 +81,7 @@ class TestStreamReader {
             Assert.equals(text, resultBytes.toString());
 
             done();
-        }).handleException(exceptionHandler);
+        }).handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testRead() {
@@ -119,7 +119,7 @@ class TestStreamReader {
             task.getResult();
 
             done();
-        }).handleException(exceptionHandler);
+        }).handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testReadOnce() {
@@ -135,11 +135,6 @@ class TestStreamReader {
                     Assert.fail();
             }
             done();
-        }).handleException(exceptionHandler);
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
+        }).handleException(TaskTestTools.exceptionHandler);
     }
 }

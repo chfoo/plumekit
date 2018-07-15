@@ -1,5 +1,6 @@
 package plumekit;
 
+import callnest.ExceptionInfo;
 import haxe.CallStack;
 import plumekit.eventloop.EventLoop;
 import utest.Assert;
@@ -15,16 +16,18 @@ class TaskTestTools {
         return Assert.createAsync(callback, Std.int(timeout * 1000));
     }
 
-    public static function exceptionHandler(exception:Any) {
-        trace('exceptionHandler $exception');
-        Assert.fail(exception);
+    public static function exceptionHandler(info:ExceptionInfo) {
+        trace('exceptionHandler ${info.exception}');
+        Assert.fail(info.exception);
 
-        if (Std.is(exception, haxe.Exception)) {
-            var exception_:haxe.Exception = exception;
-            trace(CallStack.toString(exception_.stack));
+        switch info.callStack {
+            case Some(callStack):
+                trace(CallStack.toString(callStack));
+            case None:
+                // empty
         }
 
-        throw exception;
+        throw info.exception;
     }
 
     public static function startTimedTest(eventLoop:EventLoop, timeout:Float = LOOP_TIMEOUT) {

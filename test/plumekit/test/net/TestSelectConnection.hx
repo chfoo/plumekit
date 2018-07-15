@@ -39,7 +39,7 @@ class TestSelectConnection {
                 gotAccept = true;
                 childConnection.close();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
 
         var port = serverConnection.hostAddress().port;
 
@@ -53,14 +53,9 @@ class TestSelectConnection {
                 eventLoop.stop();
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
 
         eventLoop.startTimedTest();
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
     }
 
     function testConnectFailure() {

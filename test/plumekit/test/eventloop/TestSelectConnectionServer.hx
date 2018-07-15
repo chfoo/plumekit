@@ -104,7 +104,7 @@ class TestSelectConnectionServer {
 
                 return TaskTools.fromResult(Nothing);
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function clientConnect() {
@@ -133,10 +133,5 @@ class TestSelectConnectionServer {
                 trace("client done");
                 return task;
             });
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
     }
 }

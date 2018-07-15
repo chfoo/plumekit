@@ -63,7 +63,7 @@ class TestSelectSocketStream {
                 eventLoop.stop();
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
 
         eventLoop.startTimedTest();
     }
@@ -82,10 +82,5 @@ class TestSelectSocketStream {
 
             break;
         }
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
     }
 }

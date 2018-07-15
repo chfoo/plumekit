@@ -50,7 +50,7 @@ class TestTextReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testReadAll() {
@@ -69,7 +69,7 @@ class TestTextReader {
                 resultText = task.getResult();
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testReadLine() {
@@ -118,7 +118,7 @@ class TestTextReader {
                 task.getResult();
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function testBufferFull() {
@@ -160,11 +160,6 @@ class TestTextReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
+            .handleException(TaskTestTools.exceptionHandler);
     }
 }

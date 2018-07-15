@@ -44,7 +44,7 @@ class TestBufferedReader {
                 return reader.readUntil("\n".code);
             })
             .onComplete(callback)
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function readUntilCallbackHelper(task:Task<ReadScanResult<Bytes>>)
@@ -76,7 +76,7 @@ class TestBufferedReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     public function testRead() {
@@ -108,7 +108,7 @@ class TestBufferedReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function testReadOnce() {
@@ -130,7 +130,7 @@ class TestBufferedReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function testReadInto() {
@@ -158,7 +158,7 @@ class TestBufferedReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function testReadIntoOnce() {
@@ -183,7 +183,7 @@ class TestBufferedReader {
 
                 done();
             })
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function testBufferFull() {
@@ -206,7 +206,7 @@ class TestBufferedReader {
 
         reader.readUntil("\n".code)
             .onComplete(callback)
-            .handleException(exceptionHandler);
+            .handleException(TaskTestTools.exceptionHandler);
     }
 
     function getReader() {
@@ -216,10 +216,5 @@ class TestBufferedReader {
         var reader = new BufferedReader(stream, 16384, 4);
 
         return reader;
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
     }
 }

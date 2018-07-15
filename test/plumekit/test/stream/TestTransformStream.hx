@@ -76,11 +76,6 @@ class TestTransformStream {
                 Assert.equals("HHeelllloo  wwoorrlldd!!-END-", text);
                 done();
             })
-            .handleException(exceptionHandler);
-    }
-
-    function exceptionHandler(exception:Any) {
-        Assert.fail(exception);
-        throw exception;
+            .handleException(TaskTestTools.exceptionHandler);
     }
 }
