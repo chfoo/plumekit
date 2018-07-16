@@ -1,4 +1,4 @@
-package plumekit.netdata;
+package plumekit.www;
 
 using StringTools;
 using plumekit.Exception;

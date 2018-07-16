@@ -1,4 +1,4 @@
-package plumekit.netdata;
+package plumekit.www;
 
 import haxe.Constraints.IMap;
 

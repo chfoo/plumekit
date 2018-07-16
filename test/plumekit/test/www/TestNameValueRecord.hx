@@ -1,7 +1,7 @@
-package plumekit.test.netdata;
+package plumekit.test.www;
 
 import utest.Assert;
-import plumekit.netdata.NameValueRecord;
+import plumekit.www.NameValueRecord;
 
 using Lambda;
 
