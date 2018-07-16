@@ -1,7 +1,8 @@
 package plumekit.text.codec;
 
 import haxe.Resource;
-import haxe.Json;
+import org.msgpack.MsgPack;
+import plumekit.internal.ResourceSetup;
 
 
 typedef EncodingNameInfo = {
@@ -13,19 +14,20 @@ typedef EncodingNameInfo = {
 class EncodingsLoader {
     static var docCache:Any;
 
-    static function loadJson():Any {
+    static function loadDoc():Any {
         if (docCache != null) {
             return docCache;
         }
 
-        var text = Resource.getString("encoding/encodings.json");
-        docCache = Json.parse(text);
+        var data = Resource.getBytes(ResourceSetup.ENCODING_ENCODINGS);
+        Debug.assert(data != null);
+        docCache = MsgPack.decode(data);
         return docCache;
     }
 
     public static function getEncodingNameInfos():Map<String,EncodingNameInfo> {
         var map = new Map<String,EncodingNameInfo>();
-        var doc:Array<Any> = loadJson();
+        var doc:Array<Any> = loadDoc();
 
         for (headingDoc in doc) {
             var encodingDocs:Array<Any> = Reflect.field(headingDoc, "encodings");

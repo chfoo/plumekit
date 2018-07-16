@@ -1,8 +1,10 @@
 package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
-import haxe.Resource;
 import haxe.Json;
+import haxe.Resource;
+import org.msgpack.MsgPack;
+import plumekit.internal.ResourceSetup;
 
 using plumekit.text.codec.CodecTools;
 
@@ -23,18 +25,19 @@ typedef GB18030Range = {
 class IndexLoader {
     static var docCache:Any;
 
-    static function loadJson():Any {
+    static function loadDoc():Any {
         if (docCache != null) {
             return docCache;
         }
 
-        var text = Resource.getString("encoding/indexes.json");
-        docCache = Json.parse(text);
+        var data = Resource.getBytes(ResourceSetup.ENCODING_INDEXES);
+        Debug.assert(data != null);
+        docCache = MsgPack.decode(data);
         return docCache;
     }
 
     static function getArray(encoding:String):Array<Any> {
-        var doc = loadJson();
+        var doc = loadDoc();
         var array:Array<Any> = Reflect.field(doc, encoding);
         return array;
     }

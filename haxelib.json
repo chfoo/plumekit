@@ -12,6 +12,7 @@
     "callnest": "",
     "commonbox": "",
     "exception": "1.0.2",
+    "msgpack-haxe": "1.15.1",
     "unifill": "0.4.1"
   }
 }

@@ -1,0 +1,2 @@
+# Macro build initialization:
+--macro plumekit.internal.ResourceSetup.initResources()

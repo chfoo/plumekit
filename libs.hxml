@@ -1,4 +1,5 @@
 -lib callnest
 -lib commonbox
 -lib exception
+-lib msgpack-haxe
 -lib unifill
