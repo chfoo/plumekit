@@ -1,11 +1,13 @@
 package plumekit.text.codec;
 
-using plumekit.text.codec.CodecTools;
+import plumekit.text.CodePointTools.INT_NULL;
+
+using plumekit.text.CodePointTools;
 
 
 class UTF16Decoder implements Handler {
-    var utf16LeadByte = CodecTools.INT_NULL;
-    var utf16LeadSurrogate = CodecTools.INT_NULL;
+    var utf16LeadByte = INT_NULL;
+    var utf16LeadSurrogate = INT_NULL;
     var utf16BEDecoderFlag = false;
 
     public function new(bigEndian:Bool = false) {
@@ -14,17 +16,17 @@ class UTF16Decoder implements Handler {
 
     public function process(stream:Stream, byte:Int):Result {
         if (byte == Stream.END_OF_STREAM
-                && (utf16LeadByte != CodecTools.INT_NULL
-                || utf16LeadSurrogate != CodecTools.INT_NULL)) {
-            utf16LeadByte = utf16LeadSurrogate = CodecTools.INT_NULL;
-            return Result.Error(CodecTools.INT_NULL);
+                && (utf16LeadByte != INT_NULL
+                || utf16LeadSurrogate != INT_NULL)) {
+            utf16LeadByte = utf16LeadSurrogate = INT_NULL;
+            return Result.Error(INT_NULL);
 
         } else if (byte == Stream.END_OF_STREAM
-                && utf16LeadByte == CodecTools.INT_NULL
-                && utf16LeadSurrogate == CodecTools.INT_NULL) {
+                && utf16LeadByte == INT_NULL
+                && utf16LeadSurrogate == INT_NULL) {
             return Result.Finished;
 
-        } else if (utf16LeadByte == CodecTools.INT_NULL) {
+        } else if (utf16LeadByte == INT_NULL) {
             utf16LeadByte = byte;
             return Result.Continue;
         }
@@ -37,9 +39,9 @@ class UTF16Decoder implements Handler {
             codeUnit = (byte << 8) | utf16LeadByte;
         }
 
-        utf16LeadByte = CodecTools.INT_NULL;
+        utf16LeadByte = INT_NULL;
 
-        if (utf16LeadSurrogate != CodecTools.INT_NULL) {
+        if (utf16LeadSurrogate != INT_NULL) {
             return processLeadSurrogateNotNull(stream, byte, codeUnit);
         }
 
@@ -47,7 +49,7 @@ class UTF16Decoder implements Handler {
             utf16LeadSurrogate = codeUnit;
             return Result.Continue;
         } else if (codeUnit.isInRange(0xDC00, 0xDFFF)) {
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
 
         return Result.Token(codeUnit);
@@ -55,7 +57,7 @@ class UTF16Decoder implements Handler {
 
     function processLeadSurrogateNotNull(stream:Stream, byte:Int, codeUnit:Int) {
         var leadSurrogate = utf16LeadSurrogate;
-        utf16LeadSurrogate = CodecTools.INT_NULL;
+        utf16LeadSurrogate = INT_NULL;
 
         if (codeUnit.isInRange(0xDC00, 0xDFFF)) {
             var codePoint = 0x10000
@@ -75,6 +77,6 @@ class UTF16Decoder implements Handler {
             stream.unshift(byte2);
         }
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 }

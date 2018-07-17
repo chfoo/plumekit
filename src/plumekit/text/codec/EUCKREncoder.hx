@@ -2,8 +2,10 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
 using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class EUCKREncoder implements Handler {
@@ -25,10 +27,10 @@ class EUCKREncoder implements Handler {
         if (index.exists(codePoint)) {
             pointer = index.get(codePoint);
         } else {
-            pointer = CodecTools.INT_NULL;
+            pointer = INT_NULL;
         }
 
-        if (pointer == CodecTools.INT_NULL) {
+        if (pointer == INT_NULL) {
             return Result.Error(codePoint);
         }
 

@@ -1,6 +1,7 @@
 package plumekit.text.codec;
 
 import haxe.io.Bytes;
+import plumekit.text.CodePointTools.INT_NULL;
 
 
 class SpecUTF8Decoder implements Decoder {
@@ -55,9 +56,9 @@ class SpecUTF8Decoder implements Decoder {
     function checkBOM() {
         read3Bytes();
 
-        var byte1 = buffer.length >= 1 ? buffer.get(0) : CodecTools.INT_NULL;
-        var byte2 = buffer.length >= 2 ? buffer.get(1) : CodecTools.INT_NULL;
-        var byte3 = buffer.length >= 3 ? buffer.get(2) : CodecTools.INT_NULL;
+        var byte1 = buffer.length >= 1 ? buffer.get(0) : INT_NULL;
+        var byte2 = buffer.length >= 2 ? buffer.get(1) : INT_NULL;
+        var byte3 = buffer.length >= 3 ? buffer.get(2) : INT_NULL;
 
         if (!(byte1 == 0xEF && byte2 == 0xBB && byte3 == 0xBF)) {
             prependBufferToStream();

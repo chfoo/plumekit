@@ -2,8 +2,10 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
 using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class ShiftJISEncoder implements Handler {
@@ -36,7 +38,7 @@ class ShiftJISEncoder implements Handler {
         if (index.exists(codePoint)) {
             pointer = index.get(codePoint);
         } else {
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
 
         var lead = pointer.div(188);

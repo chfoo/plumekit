@@ -2,7 +2,7 @@ package plumekit.text.codec;
 
 import plumekit.text.codec.Handler;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class XUserDefinedEncoder implements Handler {

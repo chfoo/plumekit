@@ -1,6 +1,6 @@
 package plumekit.text.codec;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class UTF8Encoder implements Handler {

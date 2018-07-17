@@ -1,6 +1,8 @@
 package plumekit.text.codec;
 
-using plumekit.text.codec.CodecTools;
+import plumekit.text.CodePointTools.INT_NULL;
+
+using plumekit.text.CodePointTools;
 
 
 class UTF8Decoder implements Handler {
@@ -16,7 +18,7 @@ class UTF8Decoder implements Handler {
     public function process(stream:Stream, byte:Int):Result {
         if (byte == Stream.END_OF_STREAM && bytesNeeded != 0) {
             bytesNeeded = 0;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         } else if (byte == Stream.END_OF_STREAM) {
             return Result.Finished;
         }
@@ -29,7 +31,7 @@ class UTF8Decoder implements Handler {
             upperBoundary = 0xbf;
             stream.unshift(byte);
 
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
 
         lowerBoundary = 0x80;
@@ -72,7 +74,7 @@ class UTF8Decoder implements Handler {
             bytesNeeded = 3;
             codePoint = byte & 0x7;
         } else {
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
 
         return Result.Continue;

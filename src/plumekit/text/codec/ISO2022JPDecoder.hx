@@ -2,8 +2,9 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 private enum DecoderState {
@@ -59,7 +60,7 @@ class ISO2022JPDecoder implements Handler {
             return Result.Finished;
         } else {
             iso2022jpOutputFlag = false;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
     }
 
@@ -82,7 +83,7 @@ class ISO2022JPDecoder implements Handler {
             return Result.Finished;
         } else {
             iso2022jpOutputFlag = false;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
     }
 
@@ -97,7 +98,7 @@ class ISO2022JPDecoder implements Handler {
             return Result.Finished;
         } else {
             iso2022jpOutputFlag = false;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
     }
 
@@ -114,7 +115,7 @@ class ISO2022JPDecoder implements Handler {
             return Result.Finished;
         } else {
             iso2022jpOutputFlag = false;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
     }
 
@@ -126,14 +127,14 @@ class ISO2022JPDecoder implements Handler {
         } else if (byte.isInRange(0x21, 0x7E)) {
             decoderState = LeadByte;
             var pointer = (iso2022jpLead - 0x21) * 94 + byte - 0x21;
-            var codePoint = CodecTools.INT_NULL;
+            var codePoint = INT_NULL;
 
             if (index.exists(pointer)) {
                 codePoint = index.get(pointer);
             }
 
-            if (codePoint == CodecTools.INT_NULL) {
-                return Result.Error(CodecTools.INT_NULL);
+            if (codePoint == INT_NULL) {
+                return Result.Error(INT_NULL);
             }
 
             return Result.Token(codePoint);
@@ -142,11 +143,11 @@ class ISO2022JPDecoder implements Handler {
             decoderState = LeadByte;
             stream.unshift(byte);
 
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
 
         } else {
             decoderState = LeadByte;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         }
     }
 
@@ -161,7 +162,7 @@ class ISO2022JPDecoder implements Handler {
 
         iso2022jpOutputFlag = false;
         decoderState = decoderOutputState;
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 
     function processEscape(stream:Stream, byte:Int) {
@@ -189,7 +190,7 @@ class ISO2022JPDecoder implements Handler {
             if (!outputFlag) {
                 return Result.Continue;
             } else {
-                return Result.Error(CodecTools.INT_NULL);
+                return Result.Error(INT_NULL);
             }
         }
 
@@ -199,6 +200,6 @@ class ISO2022JPDecoder implements Handler {
         iso2022jpOutputFlag = false;
         decoderState = decoderOutputState;
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 }

@@ -1,8 +1,9 @@
 package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
+import plumekit.text.CodePointTools.INT_NULL;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class SingleByteDecoder implements Handler {
@@ -22,7 +23,7 @@ class SingleByteDecoder implements Handler {
             var codePoint = table.get(pointer);
 
             if (codePoint == null) {
-                return Result.Error(CodecTools.INT_NULL);
+                return Result.Error(INT_NULL);
             }
 
             return Result.Token(codePoint);

@@ -1,12 +1,11 @@
 package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
-import haxe.Json;
 import haxe.Resource;
 import org.msgpack.MsgPack;
 import plumekit.internal.ResourceSetup;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 enum IndexLoaderFilter {

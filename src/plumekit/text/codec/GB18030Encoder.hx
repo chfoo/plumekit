@@ -2,8 +2,10 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
 using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class GB18030Encoder implements Handler {
@@ -33,10 +35,10 @@ class GB18030Encoder implements Handler {
         if (index.exists(codePoint)) {
             pointer = index.get(codePoint);
         } else {
-            pointer = CodecTools.INT_NULL;
+            pointer = INT_NULL;
         }
 
-        if (pointer != CodecTools.INT_NULL) {
+        if (pointer != INT_NULL) {
             var lead = pointer.div(190) + 0x81;
             var trail = pointer % 190;
             var offset = trail < 0x3F ? 0x40 : 0x41;
@@ -64,8 +66,8 @@ class GB18030Encoder implements Handler {
             return 7457;
         }
 
-        var offset = CodecTools.INT_NULL;
-        var pointerOffset = CodecTools.INT_NULL;
+        var offset = INT_NULL;
+        var pointerOffset = INT_NULL;
 
         for (range in ranges) {
             if (range.codePoint <= codePoint) {

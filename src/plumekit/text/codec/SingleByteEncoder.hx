@@ -2,7 +2,7 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class SingleByteEncoder implements Handler {

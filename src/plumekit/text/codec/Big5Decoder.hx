@@ -2,8 +2,9 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class Big5Decoder implements Handler {
@@ -17,7 +18,7 @@ class Big5Decoder implements Handler {
     public function process(stream:Stream, byte:Int):Result {
         if (byte == Stream.END_OF_STREAM && big5lead != 0) {
             big5lead = 0;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         } else if (byte == Stream.END_OF_STREAM && big5lead == 0) {
             return Result.Finished;
         }
@@ -35,12 +36,12 @@ class Big5Decoder implements Handler {
             return Result.Continue;
         }
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 
     function processBig5Lead(stream:Stream, byte:Int) {
         var lead = big5lead;
-        var pointer = CodecTools.INT_NULL;
+        var pointer = INT_NULL;
         big5lead = 0;
 
         var offset = byte < 0x7F ? 0x40 : 0x62;
@@ -62,17 +63,17 @@ class Big5Decoder implements Handler {
 
         var codePoint;
 
-        if (pointer == CodecTools.INT_NULL) {
-            codePoint = CodecTools.INT_NULL;
+        if (pointer == INT_NULL) {
+            codePoint = INT_NULL;
         } else {
             if (index.exists(pointer)) {
                 codePoint = index.get(pointer);
             } else {
-                codePoint = CodecTools.INT_NULL;
+                codePoint = INT_NULL;
             }
         }
 
-        if (codePoint != CodecTools.INT_NULL) {
+        if (codePoint != INT_NULL) {
             return Result.Token(codePoint);
         }
 
@@ -80,6 +81,6 @@ class Big5Decoder implements Handler {
             stream.unshift(byte);
         }
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 }

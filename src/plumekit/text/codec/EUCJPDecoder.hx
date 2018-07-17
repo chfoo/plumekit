@@ -2,8 +2,9 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class EUCJPDecoder implements Handler {
@@ -20,7 +21,7 @@ class EUCJPDecoder implements Handler {
     public function process(stream:Stream, byte:Int):Result {
         if (byte == Stream.END_OF_STREAM && eucjpLead != 0) {
             eucjpLead = 0;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         } else if (byte == Stream.END_OF_STREAM && eucjpLead == 0) {
             return Result.Finished;
         }
@@ -52,7 +53,7 @@ class EUCJPDecoder implements Handler {
         var lead = eucjpLead;
         eucjpLead = 0;
 
-        var codePoint = CodecTools.INT_NULL;
+        var codePoint = INT_NULL;
 
         if (lead.isInRange(0xA1, 0xFE) && byte.isInRange(0xA1, 0xFE)) {
             var pointer = (lead - 0xA1) * 94 + byte - 0xA1;
@@ -70,7 +71,7 @@ class EUCJPDecoder implements Handler {
 
         jis0212Flag = false;
 
-        if (codePoint != CodecTools.INT_NULL) {
+        if (codePoint != INT_NULL) {
             return Result.Token(codePoint);
         }
 
@@ -78,7 +79,7 @@ class EUCJPDecoder implements Handler {
             stream.unshift(byte);
         }
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 
 }

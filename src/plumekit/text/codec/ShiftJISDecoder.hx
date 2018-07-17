@@ -2,8 +2,9 @@ package plumekit.text.codec;
 
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
+import plumekit.text.CodePointTools.INT_NULL;
 
-using plumekit.text.codec.CodecTools;
+using plumekit.text.CodePointTools;
 
 
 class ShiftJISDecoder implements Handler {
@@ -17,7 +18,7 @@ class ShiftJISDecoder implements Handler {
     public function process(stream:Stream, byte:Int):Result {
         if (byte == Stream.END_OF_STREAM && shiftJISLead != 0) {
             shiftJISLead = 0;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         } else if (byte == Stream.END_OF_STREAM && shiftJISLead == 0) {
             return Result.Finished;
         } else if (shiftJISLead != 0) {
@@ -33,12 +34,12 @@ class ShiftJISDecoder implements Handler {
             return Result.Continue;
         }
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 
     function processLeadNotZero(stream:Stream, byte:Int) {
          var lead = shiftJISLead;
-        var pointer = CodecTools.INT_NULL;
+        var pointer = INT_NULL;
         shiftJISLead = 0;
 
         var offset = byte < 0x7F ? 0x40 : 0x41;
@@ -54,17 +55,17 @@ class ShiftJISDecoder implements Handler {
 
         var codePoint;
 
-        if (pointer == CodecTools.INT_NULL) {
-            codePoint = CodecTools.INT_NULL;
+        if (pointer == INT_NULL) {
+            codePoint = INT_NULL;
         } else {
             if (index.exists(pointer)) {
                 codePoint = index.get(pointer);
             } else {
-                codePoint = CodecTools.INT_NULL;
+                codePoint = INT_NULL;
             }
         }
 
-        if (codePoint != CodecTools.INT_NULL) {
+        if (codePoint != INT_NULL) {
             return Result.Token(codePoint);
         }
 
@@ -72,6 +73,6 @@ class ShiftJISDecoder implements Handler {
             stream.unshift(byte);
         }
 
-        return Result.Error(CodecTools.INT_NULL);
+        return Result.Error(INT_NULL);
     }
 }

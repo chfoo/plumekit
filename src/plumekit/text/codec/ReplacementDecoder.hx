@@ -1,5 +1,7 @@
 package plumekit.text.codec;
 
+import plumekit.text.CodePointTools.INT_NULL;
+
 
 class ReplacementDecoder implements Handler {
     var errorReturned = false;
@@ -12,7 +14,7 @@ class ReplacementDecoder implements Handler {
             return Result.Finished;
         } else if (!errorReturned) {
             errorReturned = true;
-            return Result.Error(CodecTools.INT_NULL);
+            return Result.Error(INT_NULL);
         } else {
             return Result.Finished;
         }
