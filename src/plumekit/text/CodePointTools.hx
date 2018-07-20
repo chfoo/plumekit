@@ -113,4 +113,20 @@ class CodePointTools {
     public static function isASCIIAlphanumeric(char:Int):Bool {
         return isASCIIDigit(char) || isASCIIAlpha(char);
     }
+
+    public static function toASCIILowercase(char:Int):Int {
+        if (isASCIIAlpha(char)) {
+            return char | 0x20; // 0b00100000
+        } else {
+            return char;
+        }
+    }
+
+    public static function toASCIIUppercase(char:Int):Int {
+        if (isASCIIAlpha(char)) {
+            return char & ~0x20;
+        } else {
+            return char;
+        }
+    }
 }

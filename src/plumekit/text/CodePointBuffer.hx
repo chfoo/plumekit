@@ -1,11 +1,12 @@
 package plumekit.text;
 
+import unifill.CodePoint;
 import commonbox.ds.Deque;
 
 using unifill.Unifill;
 
 
-class CodePointBuffer extends Deque<Int> {
+class CodePointBuffer extends Deque<CodePoint> {
     public function prependString(text:String) {
         var codePoints = [];
 
@@ -21,12 +22,6 @@ class CodePointBuffer extends Deque<Int> {
     }
 
     override public function toString():String {
-        var buf = new StringBuf();
-
-        for (codePoint in this) {
-            buf.uAddChar(codePoint);
-        }
-
-        return buf.toString();
+        return this.uToString();
     }
 }
