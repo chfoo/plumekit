@@ -36,4 +36,28 @@ class TestStringTextTools {
         Assert.equals("Hello_World", "hello_world".toTitleCase());
         Assert.equals("Hello123World", "hello123world".toTitleCase());
     }
+
+    public function testTrimPredicate() {
+        function isLowercaseE(char:Int) {
+            return char == "e".code;
+        }
+
+        Assert.equals("", "".trimPredicate(isLowercaseE));
+        Assert.equals("a", "a".trimPredicate(isLowercaseE));
+        Assert.equals("a", "ae".trimPredicate(isLowercaseE));
+        Assert.equals("a", "ea".trimPredicate(isLowercaseE));
+        Assert.equals("a", "eae".trimPredicate(isLowercaseE));
+        Assert.equals("abc", "eeabcee".trimPredicate(isLowercaseE));
+    }
+
+    public function testReplacePredicate() {
+        function isLowercaseE(char:Int) {
+            return char == "e".code;
+        }
+
+        Assert.equals("", "".replacePredicate(isLowercaseE, "q"));
+        Assert.equals("a", "a".replacePredicate(isLowercaseE, "q"));
+        Assert.equals("aq", "ae".replacePredicate(isLowercaseE, "q"));
+        Assert.equals("aqbq", "aebe".replacePredicate(isLowercaseE, "q"));
+    }
 }
