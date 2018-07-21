@@ -1,24 +1,23 @@
 package plumekit.url;
 
+import haxe.io.Bytes;
+
 
 class ParserTools {
-    public static inline var INT_NULL = - 1;
+    public static function splitOnByte(bytes:Bytes, byte:Int):Array<Bytes> {
+        var output = [];
 
-    public static function isASCII(char:Int):Bool {
-        return char <= 0x7f;
-    }
+        var lowerIndex = 0;
 
-    public static function isInRange(char:Int, lower:Int, upper:Int):Bool {
-        return char >= lower && char <= upper;
-    }
+        for (upperIndex in 0...bytes.length) {
+            if (bytes.get(upperIndex) == byte) {
+                output.push(bytes.sub(lowerIndex, upperIndex));
+                lowerIndex = upperIndex;
+            }
+        }
 
-    public static function isASCIIHexDigit(char:Int):Bool {
-        return isASCIIDigit(char)
-            || isInRange(char, 0x41, 0x46)
-            || isInRange(char, 0x61, 0x66);
-    }
+        output.push(bytes.sub(lowerIndex, bytes.length));
 
-    public static function isASCIIDigit(char:Int):Bool {
-        return isInRange(char, 0x30, 0x39);
+        return output;
     }
 }

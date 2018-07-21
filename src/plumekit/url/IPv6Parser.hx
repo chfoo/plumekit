@@ -1,33 +1,28 @@
 package plumekit.url;
 
+import haxe.io.UInt16Array;
 import plumekit.text.IntParser;
+import plumekit.text.CodePointTools.INT_NULL;
 
-using plumekit.url.ParserTools;
 using StringTools;
-
-
-enum IPv6ParserResult {
-    Failure;
-    Address(piece:Array<Int>);
-}
+using plumekit.text.CodePointTools;
 
 
 class IPv6Parser {
     // TODO: break up this function into smaller pieces
-    // TODO: set validation error
-    public static function parse(input:String, ?validationError:ValidationError) {
+    public static function parse(input:String, ?validationError:ValidationError):ParserResult<UInt16Array> {
         if (validationError == null) {
             validationError = new ValidationError();
         }
 
-        var address = [for (i in 0...8) 0];
+        var address = new UInt16Array(8);
         var pieceIndex = 0;
-        var compress = ParserTools.INT_NULL;
+        var compress = INT_NULL;
         var pointer = new StringPointer(input);
 
         if (pointer.c == ":".code) {
             if (!pointer.remaining.startsWith(":")) {
-                // validation error
+                validationError.set();
                 return Failure;
             }
 
@@ -36,14 +31,14 @@ class IPv6Parser {
             compress = pieceIndex;
         }
 
-        while (pointer.c != ParserTools.INT_NULL) {
+        while (pointer.c != INT_NULL) {
             if (pieceIndex == 8) {
-                // validation error
+                validationError.set();
                 return Failure;
 
             } else if (pointer.c == ":".code) {
-                if (compress != ParserTools.INT_NULL) {
-                    // validation error
+                if (compress != INT_NULL) {
+                    validationError.set();
                     return Failure;
                 }
 
@@ -62,50 +57,50 @@ class IPv6Parser {
 
             if (pointer.c == ".".code) {
                 if (length == 0) {
-                    // validation error
+                    validationError.set();
                     return Failure;
                 }
 
                 pointer.increment(-1);
 
                 if (pieceIndex > 6) {
-                    // validation error
+                    validationError.set();
                     return Failure;
                 }
 
                 var numbersSeen = 0;
 
-                while (pointer.c != ParserTools.INT_NULL) {
-                    var ipv4Piece = ParserTools.INT_NULL;
+                while (pointer.c != INT_NULL) {
+                    var ipv4Piece = INT_NULL;
 
                     if (numbersSeen > 0) {
                         if (pointer.c == ".".code && numbersSeen < 4) {
                             pointer.increment(1);
                         } else {
-                            // validation error
+                            validationError.set();
                             return Failure;
                         }
                     }
 
                     if (!pointer.c.isASCIIDigit()) {
-                        // validation error
+                        validationError.set();
                         return Failure;
                     }
 
                     while (pointer.c.isASCIIDigit()) {
                         var number = IntParser.charCodeToInt(pointer.c);
 
-                        if (ipv4Piece == ParserTools.INT_NULL) {
+                        if (ipv4Piece == INT_NULL) {
                             ipv4Piece = number;
                         } else if (ipv4Piece == 0) {
-                            // validation error
+                            validationError.set();
                             return Failure;
                         } else {
                             ipv4Piece = ipv4Piece * 10 + number;
                         }
 
                         if (ipv4Piece > 255) {
-                            // validation error
+                            validationError.set();
                             return Failure;
                         }
 
@@ -129,12 +124,12 @@ class IPv6Parser {
             } else if (pointer.c == ":".code) {
                 pointer.increment(1);
 
-                if (pointer.c == ParserTools.INT_NULL) {
-                    // validation error
+                if (pointer.c == INT_NULL) {
+                    validationError.set();
                     return Failure;
                 }
-            } else if (pointer.c != ParserTools.INT_NULL) {
-                // validation error
+            } else if (pointer.c != INT_NULL) {
+                validationError.set();
                 return Failure;
             }
 
@@ -142,7 +137,7 @@ class IPv6Parser {
             pieceIndex += 1;
         }
 
-        if (compress != ParserTools.INT_NULL) {
+        if (compress != INT_NULL) {
             var swaps = pieceIndex - compress;
             pieceIndex = 7;
 
@@ -154,11 +149,11 @@ class IPv6Parser {
                 pieceIndex += 1;
                 swaps += 1;
             }
-        } else if (compress == ParserTools.INT_NULL && pieceIndex != 8) {
-            // validation error
+        } else if (compress == INT_NULL && pieceIndex != 8) {
+            validationError.set();
             return Failure;
         }
 
-        return Address(address);
+        return Result(address);
     }
 }

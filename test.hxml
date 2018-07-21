@@ -4,5 +4,6 @@ libs.hxml
 resources.hxml
 -lib utest
 -resource test/samples/UTF-8-test.txt@test/samples/UTF-8-test.txt
+-resource lib/wpt/url/resources/urltestdata.json@wpt/urltestdata.json
 -debug
 -main plumekit.TestAll

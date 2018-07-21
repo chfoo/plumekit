@@ -17,6 +17,7 @@ Package summary:
 | `plumekit.stream` | Stream reading and writing abstractions |
 | `plumekit.text` | Text processing utilities |
 | `plumekit.text.codec` | WHATWG encoding living standard implementation (June 2018) |
+| `plumekit.url` | WHATWG URL living standard implementation (June 2018) |
 | `plumekit.www` | WWW-related data formats and protocols |
 | `plumekit.www.gopher` | Gopher protocol |
 

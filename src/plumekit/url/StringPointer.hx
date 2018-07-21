@@ -1,5 +1,7 @@
 package plumekit.url;
 
+import plumekit.text.CodePointTools.INT_NULL;
+
 using unifill.Unifill;
 
 
@@ -18,7 +20,7 @@ class StringPointer {
         if (index >= 0 && index < text.length) {
             return text.uCharCodeAt(index);
         } else {
-            return ParserTools.INT_NULL;
+            return INT_NULL;
         }
     }
 
@@ -28,5 +30,9 @@ class StringPointer {
 
     public function increment(amount:Int = 1) {
         index += amount;
+    }
+
+    public function reset() {
+        index = 0;
     }
 }
