@@ -1,4 +1,4 @@
-package plumekit.test.www.gopher;
+package plumekit.test.protocol.gopher;
 
 class SampleText {
     public function new() {

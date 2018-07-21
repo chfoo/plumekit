@@ -14,12 +14,12 @@ Package summary:
 | `plumekit.bindata` | Binary data processing |
 | `plumekit.eventloop` | Event loop management |
 | `plumekit.net` | Socket connections and Internet Protocol utilities |
+| `plumekit.protocol` | WWW-related protocol and protocol specific data formats |
+| `plumekit.protocol.gopher` | Gopher protocol |
 | `plumekit.stream` | Stream reading and writing abstractions |
 | `plumekit.text` | Text processing utilities |
-| `plumekit.text.codec` | WHATWG encoding living standard implementation (June 2018) |
-| `plumekit.url` | WHATWG URL living standard implementation (June 2018) |
-| `plumekit.www` | WWW-related data formats and protocols |
-| `plumekit.www.gopher` | Gopher protocol |
+| `plumekit.text.codec` | Text encoder/decoders (WHATWG encoding living standard, June 2018) |
+| `plumekit.url` | URL parser (WHATWG URL living standard, June 2018) |
 
 
 Getting started

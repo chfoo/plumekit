@@ -1,4 +1,4 @@
-package plumekit.www.gopher;
+package plumekit.protocol.gopher;
 
 import plumekit.stream.Source;
 import callnest.TaskTools;

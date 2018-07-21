@@ -1,4 +1,4 @@
-package plumekit.www.gopher;
+package plumekit.protocol.gopher;
 
 import plumekit.stream.ReadScanResult;
 import haxe.ds.Option;
@@ -10,7 +10,7 @@ import plumekit.stream.Sink;
 import plumekit.stream.Source;
 import plumekit.stream.TextReader;
 import plumekit.stream.TextWriter;
-import plumekit.www.gopher.GopherException;
+import plumekit.protocol.gopher.GopherException;
 
 using callnest.TaskTools;
 using plumekit.stream.PipeTools;
