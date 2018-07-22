@@ -37,7 +37,7 @@ class BufferedReader implements Reader {
             case Some(index):
                 return readUntilReturnBufferResult(index + 1);
             case None:
-                fromIndex += buffer.length;
+                fromIndex = buffer.length;
 
                 return readUntilFillBuffer(char, fromIndex);
         }
