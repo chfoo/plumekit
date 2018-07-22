@@ -9,6 +9,7 @@ install:
 
   ## Comment or remove once stable API is reached:
   - yes | haxelib git callnest https://github.com/chfoo/callnest
+  - yes | haxelib git callnest https://github.com/chfoo/commonbox
 
 script:
   - haxe hxml/test.neko.hxml
