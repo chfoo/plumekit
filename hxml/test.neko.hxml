@@ -1,2 +1,3 @@
 test.hxml
+-D embed_resources
 -neko out/neko/test.n

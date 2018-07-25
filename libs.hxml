@@ -2,4 +2,5 @@
 -lib commonbox
 -lib exception
 -lib msgpack-haxe
+-lib resdb
 -lib unifill

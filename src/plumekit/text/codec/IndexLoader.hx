@@ -1,11 +1,11 @@
 package plumekit.text.codec;
 
+import resdb.Database;
 import haxe.Constraints.IMap;
-import haxe.Resource;
-import org.msgpack.MsgPack;
-import plumekit.internal.ResourceSetup;
+import plumekit.internal.EncodingsResource;
 
 using plumekit.text.CodePointTools;
+using plumekit.internal.IntAdapter;
 
 
 enum IndexLoaderFilter {
@@ -15,43 +15,31 @@ enum IndexLoaderFilter {
 }
 
 
-typedef GB18030Range = {
-    pointer:Int,
-    codePoint:Int
-};
-
-
 class IndexLoader {
-    static var docCache:Any;
+    static var databaseCache:Map<String,Database> = new Map();
 
-    static function loadDoc():Any {
-        if (docCache != null) {
-            return docCache;
+    public static function getDatabase(encoding:String):Database {
+        if (!databaseCache.exists(encoding)) {
+            databaseCache.set(encoding, EncodingsResource.getIndex(encoding));
         }
 
-        var data = Resource.getBytes(ResourceSetup.ENCODING_INDEXES);
-        Debug.assert(data != null);
-        docCache = MsgPack.decode(data);
-        return docCache;
-    }
-
-    static function getArray(encoding:String):Array<Any> {
-        var doc = loadDoc();
-        var array:Array<Any> = Reflect.field(doc, encoding);
-        return array;
+        return databaseCache.get(encoding);
     }
 
     public static function getPointerToCodePointMap(encoding:String):IMap<Int,Int> {
         var map = new Map<Int,Int>();
-        var array = getArray(encoding);
+        var database = getDatabase(encoding);
+        var cursor = database.intCursor();
 
-        for (index in 0...array.length) {
-            var value = array[index];
+        while (true) {
+            var pointer = cursor.key();
+            var codePoint = cursor.value();
 
-            if (value != null) {
-                var pointer = index;
-                var codePoint = cast(value, Int);
-                map.set(pointer, codePoint);
+            map.set(pointer, codePoint);
+
+            switch cursor.next() {
+                case Some(key): continue;
+                case None: break;
             }
         }
 
@@ -62,23 +50,21 @@ class IndexLoader {
             ?filter:IndexLoaderFilter):IMap<Int,Int> {
         filter = filter != null ? filter : None;
         var map = new Map<Int,Int>();
-        var array = getArray(encoding);
+        var database = getDatabase(encoding);
+        var cursor = database.intCursor();
 
-        for (index in 0...array.length) {
-            var value = array[index];
+         while (true) {
+            var pointer = cursor.key();
+            var codePoint = cursor.value();
 
-            if (value != null) {
-                var pointer = index;
+            if (!isFilterSkip(filter, pointer)
+            && (!map.exists(codePoint) || isUseLast(filter, codePoint))) {
+                map.set(codePoint, pointer);
+            }
 
-                if (isFilterSkip(filter, pointer)) {
-                    continue;
-                }
-
-                var codePoint = cast(value, Int);
-
-                if (!map.exists(codePoint) || isUseLast(filter, codePoint)) {
-                    map.set(codePoint, pointer);
-                }
+            switch cursor.next() {
+                case Some(key): continue;
+                case None: break;
             }
         }
 
@@ -113,20 +99,5 @@ class IndexLoader {
             default:
                 return false;
         }
-    }
-
-    public static function getGB18030Ranges():Array<GB18030Range> {
-        var array:Array<Array<Int>> = cast getArray("gb18030-ranges");
-
-        var newArray = [];
-
-        for (item in array) {
-            newArray.push({
-                pointer: item[0],
-                codePoint: item[1]
-            });
-        }
-
-        return newArray;
     }
 }

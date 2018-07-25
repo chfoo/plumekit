@@ -3,20 +3,22 @@ package plumekit.text.codec;
 import haxe.Constraints.IMap;
 import plumekit.text.codec.IndexLoader;
 import plumekit.text.CodePointTools.INT_NULL;
+import resdb.Database;
 
 using plumekit.text.codec.CodecTools;
 using plumekit.text.CodePointTools;
+using plumekit.internal.IntAdapter;
 
 
 class GB18030Encoder implements Handler {
     var gbkFlag = false;
     var index:IMap<Int,Int>;
-    var ranges:Array<GB18030Range>;
+    var rangesDatabase:Database;
 
     public function new(gbkFlag:Bool = false) {
         this.gbkFlag = gbkFlag;
         index = IndexLoader.getCodePointToPointerMap("gb18030");
-        ranges = IndexLoader.getGB18030Ranges();
+        rangesDatabase = IndexLoader.getDatabase("gb18030-ranges");
     }
 
     public function process(stream:Stream, codePoint:Int):Result {
@@ -68,13 +70,22 @@ class GB18030Encoder implements Handler {
 
         var offset = INT_NULL;
         var pointerOffset = INT_NULL;
+        var cursor = rangesDatabase.intCursor();
 
-        for (range in ranges) {
-            if (range.codePoint <= codePoint) {
-                offset = range.codePoint;
-                pointerOffset = range.pointer;
+        while (true) {
+            var cursorPointer = cursor.key();
+            var cursorCodePoint = cursor.value();
+
+            if (cursorCodePoint <= codePoint) {
+                offset = cursorCodePoint;
+                pointerOffset = cursorPointer;
             } else {
                 break;
+            }
+
+            switch cursor.next() {
+                case Some(key): continue;
+                case None: break;
             }
         }
 

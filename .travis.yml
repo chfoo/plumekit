@@ -4,6 +4,8 @@ services:
     - redis
 
 install:
+  - yes | haxelib git resdb https://github.com/chfoo/resdb
+
   - yes | haxelib install test.hxml
   - yes | haxelib install hxml/test.cpp.hxml
 

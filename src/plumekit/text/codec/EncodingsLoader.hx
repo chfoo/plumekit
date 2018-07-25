@@ -1,8 +1,6 @@
 package plumekit.text.codec;
 
-import haxe.Resource;
-import org.msgpack.MsgPack;
-import plumekit.internal.ResourceSetup;
+import plumekit.internal.EncodingsResource;
 
 
 typedef EncodingNameInfo = {
@@ -19,9 +17,7 @@ class EncodingsLoader {
             return docCache;
         }
 
-        var data = Resource.getBytes(ResourceSetup.ENCODING_ENCODINGS);
-        Debug.assert(data != null);
-        docCache = MsgPack.decode(data);
+        docCache = EncodingsResource.getEncodings();
         return docCache;
     }
 
