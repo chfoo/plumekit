@@ -18,7 +18,7 @@ class TestSelectSocketStream {
     public function new() {
     }
 
-    public function testReadWrite() {
+    public function testManualReadWrite() {
         var dispatcher = new SelectDispatcher();
         var eventLoop = new SelectEventLoop(dispatcher);
         var socket = new Socket();

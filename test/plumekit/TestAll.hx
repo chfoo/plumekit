@@ -32,6 +32,8 @@ class TestAll {
         #if sys
         runner.addCase(new plumekit.test.net.TestSelectConnection());
         runner.addCase(new plumekit.test.net.TestSelectSocketStream());
+        #elseif js
+        runner.addCase(new plumekit.test.net.TestWebSocketClientConnection());
         #end
     }
 }
