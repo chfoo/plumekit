@@ -1,5 +1,6 @@
 package plumekit.url;
 
+import plumekit.text.codec.SpecHook;
 import plumekit.text.codec.Registry;
 import plumekit.url.Host;
 import plumekit.url.IPv4Parser;
@@ -35,8 +36,7 @@ class HostParser {
             }
         }
 
-        var decoder = Registry.getSpecUTF8WithoutBOMDecoder();
-        var domain = decoder.decode(PercentEncoder.stringPercentDecode(input));
+        var domain = SpecHook.utf8WithoutBOMDecode(PercentEncoder.stringPercentDecode(input));
         var asciiDomainResult = IDNA.domainToASCII(domain, validationError);
         var asciiDomain;
 

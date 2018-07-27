@@ -4,7 +4,7 @@ import plumekit.text.IntParser;
 import haxe.io.BytesBuffer;
 import haxe.io.Bytes;
 import unifill.CodePoint;
-import plumekit.text.codec.Registry;
+import plumekit.text.codec.SpecHook;
 import plumekit.text.CodePointTools.INT_NULL;
 
 using StringTools;
@@ -18,9 +18,8 @@ class PercentEncoder {
         if (!predicate(codePoint)) {
             return charText;
         }
-        var encoder = Registry.getSpecUTF8Encoder();
-        var bytes = encoder.encode(charText);
 
+        var bytes = SpecHook.utf8Encode(charText);
         var buf = new StringBuf();
 
         for (index in 0...bytes.length) {
@@ -35,9 +34,7 @@ class PercentEncoder {
     }
 
     public static function stringPercentDecode(input:String):Bytes {
-        var encoder = Registry.getSpecUTF8Encoder();
-
-        return percentDecode(encoder.encode(input));
+        return percentDecode(SpecHook.utf8Encode(input));
     }
 
     public static function percentDecode(input:Bytes):Bytes {

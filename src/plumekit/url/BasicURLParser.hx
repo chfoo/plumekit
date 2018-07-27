@@ -1,19 +1,20 @@
 package plumekit.url;
 
-import haxe.io.BytesBuffer;
-import unifill.InternalEncoding;
 import haxe.ds.Option;
+import haxe.io.BytesBuffer;
 import plumekit.text.codec.Registry;
-import plumekit.text.CodePointTools.INT_NULL;
+import plumekit.text.codec.SpecHook;
 import plumekit.text.CodePointBuffer;
+import plumekit.text.CodePointTools.INT_NULL;
 import plumekit.url.ParserResult;
+import unifill.InternalEncoding;
 
-using plumekit.text.StringTextTools;
-using plumekit.text.CodePointTools;
-using unifill.Unifill;
 using commonbox.utils.OptionTools;
-using StringTools;
+using plumekit.text.CodePointTools;
+using plumekit.text.StringTextTools;
 using plumekit.url.ParserTools;
+using StringTools;
+using unifill.Unifill;
 
 
 enum BasicURLParserState {
@@ -590,8 +591,7 @@ class BasicURLParser {
                 validationError.set();
             }
 
-            var encoder = Registry.getSpecEncoder(encoding);
-            var bytes = encoder.encode(InternalEncoding.fromCodePoint(pointer.c));
+            var bytes = SpecHook.encode(InternalEncoding.fromCodePoint(pointer.c), encoding);
 
             if (bytes.startsWithByte("&".code, "#".code) && bytes.endsWithByte(";".code)) {
                 var decoded = bytes.sub(2, bytes.length - 3).isomorphicDecode();
