@@ -1,5 +1,7 @@
 package plumekit.text;
 
+import haxe.io.Bytes;
+
 
 class CodePointTools {
     public static inline var INT_NULL = -1;
@@ -128,5 +130,15 @@ class CodePointTools {
         } else {
             return char;
         }
+    }
+
+    public static function isomorphicDecode(bytes:Bytes):String {
+        var buf = new StringBuf();
+
+        for (index in 0...bytes.length) {
+            buf.addChar(bytes.get(index));
+        }
+
+        return buf.toString();
     }
 }

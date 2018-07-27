@@ -1,5 +1,7 @@
 package plumekit.url;
 
+import haxe.io.BytesBuffer;
+import unifill.InternalEncoding;
 import haxe.ds.Option;
 import plumekit.text.codec.Registry;
 import plumekit.text.CodePointTools.INT_NULL;
@@ -11,6 +13,7 @@ using plumekit.text.CodePointTools;
 using unifill.Unifill;
 using commonbox.utils.OptionTools;
 using StringTools;
+using plumekit.url.ParserTools;
 
 
 enum BasicURLParserState {
@@ -46,10 +49,10 @@ enum StateMachineResult {
 
 class BasicURLParser {
     var validationError:ValidationError;
-    var stateOverride:BasicURLParserState;
+    var stateOverride:Null<BasicURLParserState>;
     var state:BasicURLParserState;
     var url:URLRecord;
-    var base:URLRecord;
+    var base:Null<URLRecord>;
     var encoding:String;
     var buffer:CodePointBuffer;
     var atFlag:Bool = false;
@@ -480,22 +483,161 @@ class BasicURLParser {
     }
 
     function runPathState() {
-        throw "not implemented";
+        if ((pointer.c == INT_NULL || pointer.c == "/".code)
+                || (url.isSpecial() && pointer.c == "\\".code)
+                || (stateOverride == null && (pointer.c == "?".code || pointer.c == "#".code))) {
+            if (url.isSpecial() && pointer.c == "\\".code) {
+                validationError.set();
+            }
+
+            if (buffer.toString().isDoubleDotPathSegment()) {
+                url.path.pop();
+
+                if (pointer.c != "/".code || !url.isSpecial() && pointer.c != "\\".code) {
+                    url.path.push("");
+                }
+            } else if (buffer.toString().isSingleDotPathSegment()
+                    && pointer.c != "/".code || !url.isSpecial() && pointer.c != "\\".code) {
+                url.path.push("");
+            } else if (!buffer.toString().isSingleDotPathSegment()) {
+                if (url.scheme == "file" && url.path.isEmpty()
+                        && buffer.toString().isWindowsDriveLetter()) {
+                    if (url.host != Host.EmptyHost || url.host == Host.Null) {
+                        validationError.set();
+                        url.host = Host.EmptyHost;
+                    }
+
+                    buffer.set(1, ":".code);
+                }
+
+                url.path.push(buffer.toString());
+            }
+
+            buffer.clear();
+
+            if (url.scheme == "file"
+                    && (pointer.c == INT_NULL || pointer.c == "?".code
+                    || pointer.c == "#".code)) {
+                while (url.path.length > 1 && url.path.get(0) == "") {
+                    validationError.set();
+                    url.path.shift();
+                }
+            }
+
+            if (pointer.c == "?".code) {
+                url.query = Some("");
+                state = QueryState;
+            }
+
+            if (pointer.c == "#".code) {
+                url.fragment = Some("");
+                state = FragmentState;
+            }
+        } else {
+            if (!pointer.c.isURLCodePoint() && pointer.c != "%".code) {
+                validationError.set();
+            }
+
+            if (pointer.c == "%".code && !pointer.remaining.startsWithTwoHexDigits()) {
+                    validationError.set();
+            }
+
+            buffer.appendString(
+                PercentEncoder.utf8PercentEncode(pointer.c, PercentEncodeSet.path)
+            );
+        }
+
         return Continue;
     }
 
     function runCannotBeABaseURLPathState() {
-        throw "not implemented";
+        if (pointer.c == "?".code) {
+            url.query = Some("");
+            state = QueryState;
+        } else if (pointer.c == "#".code) {
+            url.fragment = Some("");
+            state = FragmentState;
+        } else {
+            if (pointer.c != INT_NULL && !pointer.c.isURLCodePoint() && pointer.c != "%".code) {
+                validationError.set();
+            }
+
+            if (pointer.c == "%".code && !pointer.remaining.startsWithTwoHexDigits()) {
+                validationError.set();
+            }
+
+            if (pointer.c != INT_NULL) {
+                var encoded = PercentEncoder.utf8PercentEncode(pointer.c, PercentEncodeSet.c0Control);
+                url.path.set(0, url.path.get(0) + encoded);
+            }
+        }
+
         return Continue;
     }
 
     function runQueryState() {
-        throw "not implemented";
+        if (encoding != "UTF-8" && (!url.isSpecial()
+                || url.scheme == "ws"
+                || url.scheme == "wss")) {
+            encoding = "UTF-8";
+        }
+
+        if (stateOverride == null && pointer.c == "#".code) {
+            url.fragment = Some("");
+            state = FragmentState;
+        } else if (pointer.c != INT_NULL) {
+            if (!pointer.c.isURLCodePoint() && !pointer.remaining.startsWithTwoHexDigits()) {
+                validationError.set();
+            }
+
+            var encoder = Registry.getSpecEncoder(encoding);
+            var bytes = encoder.encode(InternalEncoding.fromCodePoint(pointer.c));
+
+            if (bytes.startsWithByte("&".code, "#".code) && bytes.endsWithByte(";".code)) {
+                var decoded = bytes.sub(2, bytes.length - 3).isomorphicDecode();
+
+                url.query = Some(url.query.getSome() + '%26%23$decoded%3B');
+            } else {
+                for (index in 0...bytes.length) {
+                    var byte = bytes.get(index);
+
+                    if (byte < "!".code
+                            || byte > "~".code
+                            || byte == "\"".code
+                            || byte == "#".code
+                            || byte == "<".code
+                            || byte == ">".code
+                            || (byte == "'".code && url.isSpecial())) {
+                        url.query = Some(url.query.getSome() + PercentEncoder.percentEncode(byte));
+                    } else {
+                        url.query = Some(url.query.getSome() + InternalEncoding.fromCodePoint(byte));
+                    }
+                }
+            }
+        }
+
         return Continue;
     }
 
     function runFragmentState() {
-        throw "not implemented";
+        switch pointer.c {
+            case INT_NULL:
+                // do nothing
+            case 0:
+                validationError.set();
+            default:
+                if (!pointer.c.isURLCodePoint() && pointer.c != "%".code) {
+                    validationError.set();
+                }
+
+                if (pointer.c == "%".code && !pointer.remaining.startsWithTwoHexDigits()) {
+                    validationError.set();
+                }
+
+                url.fragment = Some(
+                    url.fragment.getSome()
+                    + PercentEncoder.utf8PercentEncode(pointer.c, PercentEncodeSet.fragment));
+        }
         return Continue;
     }
 }

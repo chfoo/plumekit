@@ -1,6 +1,9 @@
 package plumekit.url;
 
 import haxe.io.Bytes;
+import plumekit.text.CodePointTools;
+
+using unifill.Unifill;
 
 
 class ParserTools {
@@ -19,5 +22,52 @@ class ParserTools {
         output.push(bytes.sub(lowerIndex, bytes.length));
 
         return output;
+    }
+
+    public static function isURLCodePoint(codePoint:Int):Bool {
+        return CodePointTools.isASCIIAlphanumeric(codePoint);
+    }
+
+    public static function startsWithTwoHexDigits(text:String):Bool {
+        return text.length >= 2
+            && CodePointTools.isASCIIHexDigit(text.uCharCodeAt(0))
+            && CodePointTools.isASCIIHexDigit(text.uCharCodeAt(1));
+    }
+
+    public static function startsWithByte(bytes:Bytes, byte:Int, ?byte2:Int):Bool {
+        if (byte2 == null) {
+            return bytes.length >= 1 && bytes.get(0) == byte;
+        } else {
+            return bytes.length >= 2 && bytes.get(0) == byte && bytes.get(1) == byte2;
+        }
+    }
+
+    public static function endsWithByte(bytes:Bytes, byte:Int):Bool {
+        return bytes.length >= 1 && bytes.get(bytes.length - 1) == byte;
+    }
+
+    public static function isSingleDotPathSegment(segment:String):Bool {
+        segment = segment.toLowerCase();
+        return segment == "." || segment == "%2e";
+    }
+
+    public static function isDoubleDotPathSegment(segment:String):Bool {
+        segment = segment.toLowerCase();
+        return segment == ".."
+                || segment == ".%2e"
+                || segment == "%2e."
+                || segment == "%2e%2e";
+    }
+
+    public static function isWindowsDriveLetter(drive:String):Bool {
+        return drive.length == 2
+                && CodePointTools.isASCIIAlpha(drive.charCodeAt(0))
+                && (drive.charAt(1) == ":" || drive.charAt(1) == "|");
+    }
+
+    public static function isNormalizedWindowsDriveLetter(drive:String):Bool {
+        return drive.length == 2
+                && CodePointTools.isASCIIAlpha(drive.charCodeAt(0))
+                && drive.charAt(1) == ":";
     }
 }

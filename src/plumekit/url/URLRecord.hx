@@ -4,6 +4,8 @@ import commonbox.adt.VariableSequence;
 import commonbox.ds.ArrayList;
 import haxe.ds.Option;
 
+using plumekit.url.ParserTools;
+
 
 class URLRecord {
     public var scheme:String = "";
@@ -34,5 +36,18 @@ class URLRecord {
             || host == EmptyHost
             || cannotBeABaseURL
             || scheme == "file";
+    }
+
+    public function shortenPath() {
+        if (path.isEmpty()) {
+            return;
+        }
+
+        if (scheme == "file" && path.length == 1
+                && path.get(0).isWindowsDriveLetter()) {
+            return;
+        }
+
+        path.pop();
     }
 }
