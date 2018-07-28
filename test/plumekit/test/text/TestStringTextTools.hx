@@ -48,6 +48,8 @@ class TestStringTextTools {
         Assert.equals("a", "ea".trimPredicate(isLowercaseE));
         Assert.equals("a", "eae".trimPredicate(isLowercaseE));
         Assert.equals("abc", "eeabcee".trimPredicate(isLowercaseE));
+        Assert.equals("abcdef", "abcdef".trimPredicate(isLowercaseE));
+        Assert.equals("abcedef", "eeabcedefee".trimPredicate(isLowercaseE));
     }
 
     public function testReplacePredicate() {
@@ -59,5 +61,6 @@ class TestStringTextTools {
         Assert.equals("a", "a".replacePredicate(isLowercaseE, "q"));
         Assert.equals("aq", "ae".replacePredicate(isLowercaseE, "q"));
         Assert.equals("aqbq", "aebe".replacePredicate(isLowercaseE, "q"));
+        Assert.equals("ab", "aebe".replacePredicate(isLowercaseE, ""));
     }
 }

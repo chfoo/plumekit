@@ -34,7 +34,7 @@ class URL {
 
         switch parser.parse() {
             case Failure:
-                throw new Exception.ValueException();
+                throw new Exception.ValueException('Could not parse $url');
             case Result(urlRecord_):
                 urlRecord = urlRecord_;
         }
@@ -215,7 +215,7 @@ class URL {
                     return "";
                 }
 
-                return '#${urlRecord.fragment}';
+                return '#${fragment}';
         }
     }
 
@@ -246,7 +246,8 @@ class URL {
             case Result(record):
                 return record;
             case Failure:
-                throw new Exception.ValueException();
+                throw new Exception.ValueException(
+                    'Could not parse ${parser.rawInput}');
         }
     }
 

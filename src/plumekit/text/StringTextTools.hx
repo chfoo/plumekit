@@ -34,12 +34,12 @@ class StringTextTools {
     public static function trimPredicate(text:String,
             predicate:Int->Bool):String {
         var index = 0;
-        var firstNonMatch = 0;
+        var firstNonMatch = -1;
         var lastNonMatch = 0;
 
         for (char in text.uIterator()) {
             if (!predicate(char)) {
-                if (firstNonMatch == 0) {
+                if (firstNonMatch < 0) {
                     firstNonMatch = index;
                 }
 

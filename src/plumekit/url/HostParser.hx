@@ -37,7 +37,7 @@ class HostParser {
         }
 
         var domain = SpecHook.utf8WithoutBOMDecode(PercentEncoder.stringPercentDecode(input));
-        var asciiDomainResult = IDNA.domainToASCII(domain, validationError);
+        var asciiDomainResult = IDNAHook.domainToASCII(domain, validationError);
         var asciiDomain;
 
         switch (asciiDomainResult) {

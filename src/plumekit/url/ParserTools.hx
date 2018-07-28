@@ -2,6 +2,7 @@ package plumekit.url;
 
 import haxe.io.Bytes;
 import plumekit.text.CodePointTools;
+import plumekit.text.CodePointTools.INT_NULL;
 
 using unifill.Unifill;
 
@@ -22,6 +23,20 @@ class ParserTools {
         output.push(bytes.sub(lowerIndex, bytes.length));
 
         return output;
+    }
+
+    public static function isAnyCodePoint(codePoint:Int, candidates:String):Bool {
+        if (codePoint == INT_NULL) {
+            return false;
+        }
+
+        for (candidate in candidates.uIterator()) {
+            if (codePoint == candidate) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function isURLCodePoint(codePoint:Int):Bool {
@@ -69,5 +84,12 @@ class ParserTools {
         return drive.length == 2
                 && CodePointTools.isASCIIAlpha(drive.charCodeAt(0))
                 && drive.charAt(1) == ":";
+    }
+
+    public static function startsWithWindowsDriveLetter(drive:String):Bool {
+        return drive.length >= 2
+            && isWindowsDriveLetter(drive.substr(0, 2))
+            && (drive.length == 2 ||
+                isAnyCodePoint(drive.uCharCodeAt(2), "/\\?#"));
     }
 }

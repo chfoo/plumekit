@@ -58,6 +58,8 @@ class PercentEncoder {
                 outputBuf.addByte(bytePoint);
                 index += 2;
             }
+
+            index += 1;
         }
 
         return outputBuf.getBytes();

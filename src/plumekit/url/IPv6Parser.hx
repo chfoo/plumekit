@@ -31,7 +31,7 @@ class IPv6Parser {
             compress = pieceIndex;
         }
 
-        while (pointer.c != INT_NULL) {
+        while (!pointer.isEOF()) {
             if (pieceIndex == 8) {
                 validationError.set();
                 return Failure;
@@ -53,6 +53,8 @@ class IPv6Parser {
 
             while (length < 4 && pointer.c.isASCIIHexDigit()) {
                 value = value * 0x10 + IntParser.charCodeToInt(pointer.c);
+                pointer.increment(1);
+                length += 1;
             }
 
             if (pointer.c == ".".code) {
@@ -70,7 +72,7 @@ class IPv6Parser {
 
                 var numbersSeen = 0;
 
-                while (pointer.c != INT_NULL) {
+                while (!pointer.isEOF()) {
                     var ipv4Piece = INT_NULL;
 
                     if (numbersSeen > 0) {
@@ -146,8 +148,8 @@ class IPv6Parser {
                 address[pieceIndex] = address[compress + swaps - 1];
                 address[compress + swaps - 1] = tmpAddress;
 
-                pieceIndex += 1;
-                swaps += 1;
+                pieceIndex -= 1;
+                swaps -= 1;
             }
         } else if (compress == INT_NULL && pieceIndex != 8) {
             validationError.set();

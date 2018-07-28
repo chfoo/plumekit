@@ -1,5 +1,6 @@
 package plumekit.test.url;
 
+import plumekit.Exception.ValueException;
 import utest.Assert;
 import haxe.DynamicAccess;
 import haxe.Json;
@@ -11,7 +12,6 @@ class TestURL {
     public function new() {
     }
 
-    @Ignored("WIP")
     public function testParseWPT() {
         var jsonRes = Resource.getString("wpt/urltestdata.json");
         var jsonDoc:Array<Any> = Json.parse(jsonRes);
@@ -24,30 +24,48 @@ class TestURL {
 
             var doc:DynamicAccess<Any> = item;
 
-            try {
-                runTestURLCase(doc);
-            } catch (exception:Any) {
-                var input = doc.get("input");
-                var base = doc.get("base");
-
-                trace('Test URL=$input base=$base');
-                Assert.fail(Std.string(exception));
-            }
+            runTestURLCase(doc);
         }
     }
 
     function runTestURLCase(doc:DynamicAccess<Any>) {
         var input = doc.get("input");
         var base = doc.get("base");
-        var url = new URL(input, base);
+        var expectedFailure:Bool = doc.exists("failure") ? doc.get("failure") : false;
+        var url = null;
 
-        Assert.equals(doc.get("protocol"), url.protocol);
-        Assert.equals(doc.get("username"), url.username);
-        Assert.equals(doc.get("password"), url.password);
-        Assert.equals(doc.get("hostname"), url.hostname);
-        Assert.equals(doc.get("port"), url.port);
-        Assert.equals(doc.get("pathname"), url.pathname);
-        Assert.equals(doc.get("search"), url.search);
-        Assert.equals(doc.get("hash"), url.hash);
+        trace('Test URL=$input base=$base Expected failure=$expectedFailure');
+
+        try {
+            url = new URL(input, base);
+        } catch (exception:ValueException) {
+            trace(' (failure)');
+        }
+
+        var expectedProtocol = doc.get("protocol");
+        var expectedUsername = doc.get("username");
+        var expectedPassword = doc.get("password");
+        var expectedHostname = doc.get("hostname");
+        var expectedPort = doc.get("port");
+        var expectedPathname = doc.get("pathname");
+        var expectedSearch = doc.get("search");
+        var expectedHash = doc.get("hash");
+
+        var expectedString = '$expectedProtocol,$expectedUsername,'
+            + '$expectedPassword,$expectedHostname,$expectedPort,'
+            + '$expectedPathname,$expectedSearch,$expectedHash';
+
+        Assert.equals(expectedFailure, url == null);
+
+        if (url == null) {
+            return;
+        }
+
+        var outputString = '${url.protocol},${url.username},${url.password},'
+            + '${url.hostname},${url.port},'
+            + '${url.pathname},${url.search},${url.hash}';
+
+        trace('  Expected=$expectedString Output=$outputString');
+        Assert.equals(expectedString, outputString);
     }
 }

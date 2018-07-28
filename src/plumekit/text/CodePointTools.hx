@@ -1,10 +1,15 @@
 package plumekit.text;
 
 import haxe.io.Bytes;
+import unifill.InternalEncoding;
 
 
 class CodePointTools {
     public static inline var INT_NULL = -1;
+
+    public static function toNativeString(codePoint:Int):String {
+        return InternalEncoding.fromCodePoint(codePoint);
+    }
 
     public static function isInRange(char:Int, lower:Int, upper:Int):Bool {
         return char >= lower && char <= upper;

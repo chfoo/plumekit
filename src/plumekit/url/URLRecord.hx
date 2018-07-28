@@ -4,6 +4,7 @@ import commonbox.adt.VariableSequence;
 import commonbox.ds.ArrayList;
 import haxe.ds.Option;
 
+using commonbox.utils.OptionTools;
 using plumekit.url.ParserTools;
 
 
@@ -49,5 +50,10 @@ class URLRecord {
         }
 
         path.pop();
+    }
+
+    public function isDefaultPort():Bool {
+        return SpecialScheme.defaultPorts.get(scheme)
+            .someEquals(port.getSome());
     }
 }

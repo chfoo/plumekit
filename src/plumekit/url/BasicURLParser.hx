@@ -1,5 +1,7 @@
 package plumekit.url;
 
+import plumekit.text.IntParser;
+import haxe.io.Bytes;
 import haxe.ds.Option;
 import haxe.io.BytesBuffer;
 import plumekit.text.codec.Registry;
@@ -7,7 +9,6 @@ import plumekit.text.codec.SpecHook;
 import plumekit.text.CodePointBuffer;
 import plumekit.text.CodePointTools.INT_NULL;
 import plumekit.url.ParserResult;
-import unifill.InternalEncoding;
 
 using commonbox.utils.OptionTools;
 using plumekit.text.CodePointTools;
@@ -44,6 +45,7 @@ enum BasicURLParserState {
 
 enum StateMachineResult {
     Failure;
+    Terminate;
     Continue;
 }
 
@@ -52,6 +54,7 @@ class BasicURLParser {
     var validationError:ValidationError;
     var stateOverride:Null<BasicURLParserState>;
     var state:BasicURLParserState;
+    var input:String;
     var url:URLRecord;
     var base:Null<URLRecord>;
     var encoding:String;
@@ -61,11 +64,30 @@ class BasicURLParser {
     var passwordTokenSeen = false;
     var pointer:StringPointer;
 
+    // for debugging use:
+    @:allow(plumekit)
+    var rawInput(default, null):String;
+
     public function new(input:String, ?base:URLRecord,
             ?encodingOverride:String, ?url:URLRecord,
             ?stateOverride:BasicURLParserState) {
         validationError = new ValidationError();
 
+        // trace('URL input=$input');
+
+        rawInput = input;
+        initInputAndURL(input, url);
+        initState(stateOverride);
+
+        this.base = base;
+
+        initEncoding(encodingOverride);
+
+        buffer = new CodePointBuffer();
+        pointer = new StringPointer(this.input);
+    }
+
+    function initInputAndURL(input:String, url:URLRecord) {
         if (url == null) {
             url = new URLRecord();
 
@@ -77,8 +99,6 @@ class BasicURLParser {
             }
         }
 
-        this.url = url;
-
         var newInput = input.replacePredicate(CodePointTools.isASCIITabOrNewline, "");
 
         if (newInput != input) {
@@ -86,6 +106,11 @@ class BasicURLParser {
             validationError.set();
         }
 
+        this.input = input;
+        this.url = url;
+    }
+
+    function initState(?stateOverride:BasicURLParserState) {
         this.stateOverride = stateOverride;
 
         if (stateOverride != null) {
@@ -93,30 +118,31 @@ class BasicURLParser {
         } else {
             state = SchemeStartState;
         }
+    }
 
-        this.base = base;
+    function initEncoding(?encodingOverride:String) {
         this.encoding = "UTF-8";
 
         if (encodingOverride != null) {
             this.encoding = Registry.getOutputEncodingName(encodingOverride);
         }
-
-        buffer = new CodePointBuffer();
-        pointer = new StringPointer(input);
     }
 
     public function parse():ParserResult<URLRecord> {
         while (true) {
+            // trace('Pointer = ${pointer.index} ${pointer.c.toNativeString()} State = $state');
             var result = runStateMachine();
 
             switch result {
                 case Failure:
                     return Failure;
+                case Terminate:
+                    return Result(url);
                 case Continue:
                     // pass
             }
 
-            if (pointer.c == INT_NULL) {
+            if (pointer.isEOF()) {
                 break;
             } else {
                 pointer.increment(1);
@@ -187,57 +213,12 @@ class BasicURLParser {
     }
 
     function runSchemeState() {
-        if (pointer.c.isASCIIAlphanumeric()
-                || pointer.c == "+".code
-                || pointer.c == "-".code
-                || pointer.c == ".".code) {
+        if (pointer.c.isASCIIAlphanumeric() || pointer.c.isAnyCodePoint("+-.")) {
             buffer.push(pointer.c.toASCIILowercase());
 
         } else if (pointer.c == ":".code) {
-            if (stateOverride != null) {
-                var bufferText = buffer.toString();
+            return runSchemeStateColon();
 
-                if ((
-                    SpecialScheme.schemes.contains(url.scheme)
-                        && !SpecialScheme.schemes.contains(bufferText))
-                    || (!SpecialScheme.schemes.contains(url.scheme)
-                        && SpecialScheme.schemes.contains(bufferText))
-                    || ((url.includesCredentials() || url.port != null)
-                        && bufferText == "file")
-                    || (url.scheme == "file" &&
-                        (url.host == EmptyHost || url.host == Null))
-                ) {
-                    return Continue;
-                }
-
-                url.scheme = bufferText;
-            }
-
-            if (stateOverride != null) {
-                if (SpecialScheme.defaultPorts.get(url.scheme).someEquals(url.port.getSome())) {
-                    url.port = None;
-                    return Continue;
-                }
-            }
-
-            buffer.clear();
-
-            if (url.scheme == "file") {
-                if (!pointer.remaining.startsWith("//")) {
-                    validationError.set();
-                }
-
-                state = FileState;
-            } else if (url.isSpecial() && base != null && base.scheme == url.scheme) {
-                state = SpecialRelativeOrAuthorityState;
-            } else if (url.isSpecial()) {
-                state = SpecialAuthoritySlashesState;
-            } else if (pointer.remaining.startsWith("/")) {
-                state = PathOrAuthorityState;
-                pointer.increment(1);
-            } else {
-                url.cannotBeABaseURL = true;
-            }
         } else if (stateOverride == null) {
             buffer.clear();
             state = NoSchemeState;
@@ -245,6 +226,56 @@ class BasicURLParser {
         } else {
             validationError.set();
             return Failure;
+        }
+
+        return Continue;
+    }
+
+    function runSchemeStateColon() {
+        var bufferText = buffer.toString();
+
+        if (stateOverride != null) {
+            if ((
+                SpecialScheme.schemes.contains(url.scheme)
+                    && !SpecialScheme.schemes.contains(bufferText))
+                || (!SpecialScheme.schemes.contains(url.scheme)
+                    && SpecialScheme.schemes.contains(bufferText))
+                || ((url.includesCredentials() || url.port != None)
+                    && bufferText == "file")
+                || (url.scheme == "file" &&
+                    (url.host == EmptyHost || url.host == Null))
+            ) {
+                return Terminate;
+            }
+        }
+
+        url.scheme = bufferText;
+
+        if (stateOverride != null) {
+            if (url.isDefaultPort()) {
+                url.port = None;
+            }
+
+            return Terminate;
+        }
+
+        buffer.clear();
+
+        if (url.scheme == "file") {
+            if (!pointer.remaining.startsWith("//")) {
+                validationError.set();
+            }
+
+            state = FileState;
+        } else if (url.isSpecial() && base != null && base.scheme == url.scheme) {
+            state = SpecialRelativeOrAuthorityState;
+        } else if (url.isSpecial()) {
+            state = SpecialAuthoritySlashesState;
+        } else if (pointer.remaining.startsWith("/")) {
+            state = PathOrAuthorityState;
+            pointer.increment(1);
+        } else {
+            url.cannotBeABaseURL = true;
         }
 
         return Continue;
@@ -347,8 +378,7 @@ class BasicURLParser {
     }
 
     function runRelativeSlashState() {
-        if (url.isSpecial()
-                && (pointer.c == "/".code || pointer.c == "\\".code)) {
+        if (url.isSpecial() && pointer.c.isAnyCodePoint("/\\")) {
             if (pointer.c == "\\".code) {
                 validationError.set();
             }
@@ -382,7 +412,7 @@ class BasicURLParser {
     }
 
     function runSpecialAuthorityIgnoreSlashesState() {
-        if (pointer.c != "/".code && pointer.c != "\\".code) {
+        if (!pointer.c.isAnyCodePoint("/\\")) {
             state = AuthorityState;
             pointer.increment(-1);
         } else {
@@ -420,18 +450,14 @@ class BasicURLParser {
 
             buffer.clear();
         } else if (
-                (pointer.c == INT_NULL
-                    || pointer.c == "/".code
-                    || pointer.c == "?".code
-                    || pointer.c == "#".code)
-                ||
-                (url.isSpecial() && pointer.c == "\\".code)) {
+                (pointer.isEOF() || pointer.c.isAnyCodePoint("/?#"))
+                || url.isSpecial() && pointer.c == "\\".code) {
             if (atFlag && buffer.isEmpty()) {
                 validationError.set();
                 return Failure;
             }
 
-            pointer.increment(buffer.length + 1);
+            pointer.increment(-(buffer.length + 1));
             buffer.clear();
             state = HostState;
         } else {
@@ -451,40 +477,250 @@ class BasicURLParser {
                 return Failure;
             }
 
-            var host = HostParser.parse(buffer.toString(), validationError, true);
+            var result = HostParser.parse(buffer.toString(), validationError, !url.isSpecial());
+            var host;
+
+            switch result {
+                case Failure:
+                    return Failure;
+                case Result(host_):
+                    host = host_;
+            }
+
+            url.host = host;
+            buffer.clear();
+            state = PortState;
+
+            if (stateOverride != null && stateOverride == HostnameState) {
+                return Terminate;
+            }
+        } else if (pointer.isEOF() || pointer.c.isAnyCodePoint("/?#")
+                || (url.isSpecial() && pointer.c == "\\".code)) {
+            pointer.increment(-1);
+
+            if (url.isSpecial() && buffer.isEmpty()) {
+                validationError.set();
+                return Failure;
+            } else if (stateOverride != null && buffer.isEmpty()
+                    && (url.includesCredentials() || url.port != None)) {
+                validationError.set();
+                return Terminate;
+            }
+
+            var result = HostParser.parse(buffer.toString(), validationError, !url.isSpecial());
+            var host;
+
+            switch result {
+                case Failure: return Failure;
+                case Result(host_): host = host_;
+            }
+
+            url.host = host;
+            buffer.clear();
+            state = PathStartState;
+
+            if (stateOverride != null) {
+                return Terminate;
+            }
+        } else {
+            if (pointer.c == "[".code) {
+                bracketFlag = true;
+            }
+            if (pointer.c == "]".code) {
+                bracketFlag = false;
+            }
+
+            buffer.push(pointer.c);
         }
 
-        throw "not implemented";
         return Continue;
     }
 
     function runPortState() {
-        throw "not implemented";
+        if (pointer.c.isASCIIDigit()) {
+            buffer.push(pointer.c);
+        } else if (pointer.isEOF() || pointer.c.isAnyCodePoint("/?#")
+                || (url.isSpecial() && pointer.c == "\\".code)
+                || stateOverride != null) {
+            if (!buffer.isEmpty()) {
+                var port = IntParser.parseInt(buffer.toString(), 10);
+
+                if (port > 65535) {
+                    validationError.set();
+                    return Failure;
+                }
+
+                url.port = Some(port);
+                if (url.isDefaultPort()) {
+                    url.port = None;
+                }
+
+                buffer.clear();
+            }
+
+            if (stateOverride != null) {
+                return Terminate;
+            }
+
+            state = PathStartState;
+            pointer.increment(-1);
+        } else {
+            validationError.set();
+            return Failure;
+        }
+
         return Continue;
     }
 
     function runFileState() {
-        throw "not implemented";
+        url.scheme = "file";
+
+        if (pointer.c.isAnyCodePoint("/\\")) {
+            if (pointer.c == "\\".code) {
+                validationError.set();
+            }
+
+            state = FileSlashState;
+
+        } else if (base != null && base.scheme == "file") {
+            switch pointer.c {
+                case INT_NULL:
+                    url.host = base.host;
+                    url.path = base.path.copy();
+                    url.query = base.query;
+                case "?".code:
+                    url.host = base.host;
+                    url.path = base.path.copy();
+                    url.query = Some("");
+                    state = QueryState;
+                case "#".code:
+                    url.host = base.host;
+                    url.path = base.path.copy();
+                    url.query = base.query;
+                    url.fragment = Some("");
+                    state = FragmentState;
+                default:
+                    if (!pointer.substring.startsWithWindowsDriveLetter()) {
+                        url.host = base.host;
+                        url.path = base.path.copy();
+                        url.shortenPath();
+                    } else {
+                        validationError.set();
+                    }
+
+                    state = PathState;
+                    pointer.increment(-1);
+            }
+
+        } else {
+            state = PathState;
+            pointer.increment(-1);
+        }
+
         return Continue;
     }
 
     function runFileSlashState() {
-        throw "not implemented";
+        if (pointer.c.isAnyCodePoint("/\\")) {
+            if (pointer.c == "\\".code) {
+                validationError.set();
+            }
+
+            state = FileHostState;
+        } else {
+            if (base != null && base.scheme == "file"
+                    && !pointer.substring.startsWithWindowsDriveLetter()) {
+                if (base.path.get(0).isNormalizedWindowsDriveLetter()) {
+                    url.path.push(base.path.get(0));
+                } else {
+                    url.host = base.host;
+                }
+            }
+
+            state = PathState;
+        }
+
         return Continue;
     }
 
     function runFileHostState() {
-        throw "not implemented";
+        if (pointer.isEOF() || pointer.c.isAnyCodePoint("/\\?#")) {
+            pointer.increment(-1);
+
+            if (stateOverride == null && buffer.toString().isWindowsDriveLetter()) {
+                validationError.set();
+                state = PathState;
+            } else if (buffer.isEmpty()) {
+                url.host = Host.EmptyHost;
+
+                if (stateOverride != null) {
+                    return Terminate;
+                }
+
+                state = PathStartState;
+            } else {
+                var result = HostParser.parse(buffer.toString(), validationError, !url.isSpecial());
+                var host;
+
+                switch result {
+                    case Failure: return Failure;
+                    case Result(host_): host = host_;
+                }
+
+                switch host {
+                    case Host.OpaqueHost(hostString):
+                        if (hostString == "localhost") {
+                            host = Host.EmptyHost;
+                        }
+                    default: // pass
+                }
+
+                url.host = host;
+
+                if (stateOverride != null) {
+                    return Terminate;
+                }
+
+                buffer.clear();
+                state = PathStartState;
+            }
+        } else {
+            buffer.push(pointer.c);
+        }
+
         return Continue;
     }
 
     function runPathStartState() {
-        throw "not implemented";
+        if (url.isSpecial()) {
+            if (pointer.c == "\\".code) {
+                validationError.set();
+            }
+
+            state = PathState;
+
+            if(!pointer.c.isAnyCodePoint("/\\")) {
+                pointer.increment(-1);
+            }
+        } else if (stateOverride == null && pointer.c == "?".code) {
+            url.query = Some("");
+            state = QueryState;
+        } else if (stateOverride == null && pointer.c == "#".code) {
+            url.fragment = Some("");
+            state = FragmentState;
+        } else if (!pointer.isEOF()) {
+            state = PathState;
+
+            if (pointer.c != "/".code) {
+                pointer.increment(-1);
+            }
+        }
+
         return Continue;
     }
 
     function runPathState() {
-        if ((pointer.c == INT_NULL || pointer.c == "/".code)
+        if ((pointer.isEOF() || pointer.c == "/".code)
                 || (url.isSpecial() && pointer.c == "\\".code)
                 || (stateOverride == null && (pointer.c == "?".code || pointer.c == "#".code))) {
             if (url.isSpecial() && pointer.c == "\\".code) {
@@ -517,8 +753,7 @@ class BasicURLParser {
             buffer.clear();
 
             if (url.scheme == "file"
-                    && (pointer.c == INT_NULL || pointer.c == "?".code
-                    || pointer.c == "#".code)) {
+                    && (pointer.isEOF() || pointer.c.isAnyCodePoint("?#"))) {
                 while (url.path.length > 1 && url.path.get(0) == "") {
                     validationError.set();
                     url.path.shift();
@@ -559,7 +794,7 @@ class BasicURLParser {
             url.fragment = Some("");
             state = FragmentState;
         } else {
-            if (pointer.c != INT_NULL && !pointer.c.isURLCodePoint() && pointer.c != "%".code) {
+            if (!pointer.isEOF() && !pointer.c.isURLCodePoint() && pointer.c != "%".code) {
                 validationError.set();
             }
 
@@ -567,7 +802,7 @@ class BasicURLParser {
                 validationError.set();
             }
 
-            if (pointer.c != INT_NULL) {
+            if (!pointer.isEOF()) {
                 var encoded = PercentEncoder.utf8PercentEncode(pointer.c, PercentEncodeSet.c0Control);
                 url.path.set(0, url.path.get(0) + encoded);
             }
@@ -586,37 +821,42 @@ class BasicURLParser {
         if (stateOverride == null && pointer.c == "#".code) {
             url.fragment = Some("");
             state = FragmentState;
-        } else if (pointer.c != INT_NULL) {
+        } else if (!pointer.isEOF()) {
             if (!pointer.c.isURLCodePoint() && !pointer.remaining.startsWithTwoHexDigits()) {
                 validationError.set();
             }
 
-            var bytes = SpecHook.encode(InternalEncoding.fromCodePoint(pointer.c), encoding);
+            var bytes = SpecHook.encode(pointer.c.toNativeString(), encoding);
 
             if (bytes.startsWithByte("&".code, "#".code) && bytes.endsWithByte(";".code)) {
                 var decoded = bytes.sub(2, bytes.length - 3).isomorphicDecode();
 
                 url.query = Some(url.query.getSome() + '%26%23$decoded%3B');
             } else {
-                for (index in 0...bytes.length) {
-                    var byte = bytes.get(index);
-
-                    if (byte < "!".code
-                            || byte > "~".code
-                            || byte == "\"".code
-                            || byte == "#".code
-                            || byte == "<".code
-                            || byte == ">".code
-                            || (byte == "'".code && url.isSpecial())) {
-                        url.query = Some(url.query.getSome() + PercentEncoder.percentEncode(byte));
-                    } else {
-                        url.query = Some(url.query.getSome() + InternalEncoding.fromCodePoint(byte));
-                    }
-                }
+                runQueryStateForEachByte(bytes);
             }
         }
 
         return Continue;
+    }
+
+    function runQueryStateForEachByte(bytes:Bytes) {
+        for (index in 0...bytes.length) {
+            var byte = bytes.get(index);
+
+            if (byte < "!".code
+                    || byte > "~".code
+                    || byte == "\"".code
+                    || byte == "#".code
+                    || byte == "<".code
+                    || byte == ">".code
+                    || (byte == "'".code && url.isSpecial())) {
+                url.query = Some(
+                    url.query.getSome() + PercentEncoder.percentEncode(byte));
+            } else {
+                url.query = Some(url.query.getSome() + byte.toNativeString());
+            }
+        }
     }
 
     function runFragmentState() {

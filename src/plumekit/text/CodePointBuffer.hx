@@ -23,7 +23,7 @@ class CodePointBuffer extends Deque<CodePoint> {
 
     public function appendString(text:String) {
         for (codePoint in text.uIterator()) {
-            unshift(codePoint);
+            push(codePoint);
         }
     }
 
