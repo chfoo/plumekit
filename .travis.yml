@@ -4,14 +4,13 @@ services:
     - redis
 
 install:
-  - yes | haxelib git resdb https://github.com/chfoo/resdb
-
   - yes | haxelib install test.hxml
   - yes | haxelib install hxml/test.cpp.hxml
 
   ## Comment or remove once stable API is reached:
   - yes | haxelib git callnest https://github.com/chfoo/callnest
   - yes | haxelib git commonbox https://github.com/chfoo/commonbox
+  - yes | haxelib git resdb https://github.com/chfoo/resdb
 
 script:
   - haxe hxml/test.neko.hxml
