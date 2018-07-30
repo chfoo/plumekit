@@ -1,9 +1,10 @@
 package plumekit.test.text;
 
 import plumekit.Exception;
-import plumekit.Exception;
 import plumekit.text.IntParser;
 import utest.Assert;
+
+using haxe.Int64;
 
 
 class TestIntParser {
@@ -55,7 +56,9 @@ class TestIntParser {
 
     public function testRange() {
         Assert.equals(0x7fffffff, IntParser.parseInt("7fffffff", 16));
-        Assert.equals(0xffffffff, IntParser.parseInt("ffffffff", 16));
+        Assert.raises(IntParser.parseInt.bind("ffffffff", 16), NumericalRangeException);
         Assert.raises(IntParser.parseInt.bind("100000000", 16), NumericalRangeException);
+        Assert.equals(Int64.make(0, 0xffffffff).toStr(), IntParser.parseInt64("ffffffff", 16).toStr());
+        Assert.raises(IntParser.parseInt64.bind("ffffffffffffffff", 16), NumericalRangeException);
     }
 }

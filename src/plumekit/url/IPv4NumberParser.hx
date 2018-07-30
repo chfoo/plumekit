@@ -1,6 +1,6 @@
 package plumekit.url;
 
-import haxe.ds.Option;
+import haxe.Int64;
 import plumekit.text.IntParser;
 import plumekit.Exception;
 
@@ -9,7 +9,7 @@ using StringTools;
 typedef ValidationErrorFlag = { value:Bool };
 
 enum IPv4NumberParserResult {
-    Result(value:UInt);
+    Result(value:Int64);
     Overflow;
     Failure;
 }
@@ -34,7 +34,7 @@ class IPv4NumberParser {
         }
 
         try {
-            return Result(IntParser.parseInt(input, r));
+            return Result(IntParser.parseInt64(input, r));
         } catch (exception:NumericalRangeException) {
             return Overflow; // this is not in the standard
         } catch (exception:ValueException) {

@@ -1,14 +1,20 @@
 package plumekit.url;
 
+import plumekit.text.IntParser;
+
+using haxe.Int64;
+
 
 enum IPv4ParserResult {
     Hostname(hostname:String);
-    IPv4(ipv4:UInt);
+    IPv4(ipv4:Int);
     Failure;
 }
 
 
 class IPv4Parser {
+    static var VIRTUAL_INFINITY = Int64.make(1, 0);  // 33 bit
+
     // TODO: break up this function into smaller pieces
     public static function parse(input:String, ?validationError:ValidationError):IPv4ParserResult {
         if (validationError == null) {
@@ -30,7 +36,7 @@ class IPv4Parser {
             return Hostname(input);
         }
 
-        var numbers:Array<Float> = [];
+        var numbers:Array<Int64> = [];
 
         for (part in parts) {
             if (part == "") {
@@ -47,7 +53,7 @@ class IPv4Parser {
                 case Result(value):
                     numbers.push(value);
                 case Overflow:
-                    numbers.push(Math.POSITIVE_INFINITY);
+                    numbers.push(VIRTUAL_INFINITY);
             }
         }
 
@@ -67,17 +73,17 @@ class IPv4Parser {
             }
         }
 
-        if (numbers[numbers.length - 1] >= Math.pow(256, 5 - numbers.length)) {
+        if (numbers[numbers.length - 1] >= Int64.fromFloat(Math.pow(256, 5 - numbers.length))) {
             validationError.set();
             return Failure;
         }
 
-        var ipv4 = Std.int(numbers[numbers.length - 1]);
+        var ipv4 = numbers[numbers.length - 1].toInt();
         numbers.pop();
         var counter = 0;
 
         for (n in numbers) {
-            ipv4 += Std.int(n * Math.pow(256, 3 - counter));
+            ipv4 += Std.int(n.toInt() * Math.pow(256, 3 - counter));
             counter += 1;
         }
 

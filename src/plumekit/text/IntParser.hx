@@ -2,16 +2,24 @@ package plumekit.text;
 
 import plumekit.Exception;
 
+using haxe.Int64;
+
 
 class IntParser {
-    static inline var MAX_INT_VALUE:UInt = 0xffffffff;
+    public static function parseInt(text:String, radix:Int):Int {
+        try {
+            return parseInt64(text, radix).toInt();
+        } catch (exception:String) {
+            throw new NumericalRangeException("Number too large");
+        }
+    }
 
-    public static function parseInt(text:String, radix:Int):UInt {
+    public static function parseInt64(text:String, radix:Int):Int64 {
         if (text.length < 1) {
             throw new ValueException("Empty string");
         }
 
-        var result:UInt = 0;
+        var result:Int64 = 0;
 
         for (index in 0...text.length) {
             var charInt = charCodeToInt(text.charCodeAt(index));
@@ -20,13 +28,14 @@ class IntParser {
                 throw new ValueException("Character outside radix range");
             }
 
-            var expResult = charInt * Math.pow(radix, text.length - 1 - index);
-
-            if (result + expResult > MAX_INT_VALUE) {
+            var expResult;
+            try {
+                expResult = Int64.fromFloat(charInt * Math.pow(radix, text.length - 1 - index));
+            } catch (exception:String) {
                 throw new NumericalRangeException("Number too large");
             }
 
-            result += Std.int(expResult);
+            result += expResult;
         }
 
         return result;
