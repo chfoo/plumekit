@@ -5,7 +5,7 @@ import unifill.InternalEncoding;
 
 
 class CodePointTools {
-    public static inline var INT_NULL = -1;
+    public static inline var INT_NULL = -9999;
 
     public static function toNativeString(codePoint:Int):String {
         return InternalEncoding.fromCodePoint(codePoint);

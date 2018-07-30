@@ -18,8 +18,10 @@ class StringPointer {
     }
 
     function get_c():Int {
-        if (index >= 0 && index < text.uLength()) {
+        if (index < text.uLength()) {
             return text.uCharCodeAt(index);
+        } else if (index < 0) {
+            throw new Exception('Index $index is negative');
         } else {
             return INT_NULL;
         }
@@ -42,6 +44,6 @@ class StringPointer {
     }
 
     public function isEOF():Bool {
-        return this.c == INT_NULL;
+        return index >= text.uLength();
     }
 }
