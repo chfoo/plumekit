@@ -1,6 +1,7 @@
 package plumekit.test.text;
 
-import plumekit.Exception.ValueException;
+import plumekit.Exception;
+import plumekit.Exception;
 import plumekit.text.IntParser;
 import utest.Assert;
 
@@ -53,7 +54,8 @@ class TestIntParser {
     }
 
     public function testRange() {
-        Assert.equals(0xfffffff, IntParser.parseInt("fffffff", 8));
-        Assert.raises(IntParser.parseInt.bind("10000000", 8), ValueException);
+        Assert.equals(0x7fffffff, IntParser.parseInt("7fffffff", 16));
+        Assert.equals(0xffffffff, IntParser.parseInt("ffffffff", 16));
+        Assert.raises(IntParser.parseInt.bind("100000000", 16), NumericalRangeException);
     }
 }
