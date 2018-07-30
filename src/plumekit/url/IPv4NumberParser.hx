@@ -8,10 +8,15 @@ using StringTools;
 
 typedef ValidationErrorFlag = { value:Bool };
 
+enum IPv4NumberParserResult {
+    Result(value:UInt);
+    Overflow;
+    Failure;
+}
 
 class IPv4NumberParser {
     public static function parse(input:String,
-            validationErrorFlag:ValidationErrorFlag):Option<Int> {
+            validationErrorFlag:ValidationErrorFlag):IPv4NumberParserResult {
         var r = 10;
 
         if (input.startsWith("0x") || input.startsWith("0X")) {
@@ -25,13 +30,15 @@ class IPv4NumberParser {
         }
 
         if (input == "") {
-            return Some(0);
+            return Result(0);
         }
 
         try {
-            return Some(IntParser.parseInt(input, r));
+            return Result(IntParser.parseInt(input, r));
+        } catch (exception:NumericalRangeException) {
+            return Overflow; // this is not in the standard
         } catch (exception:ValueException) {
-            return None;
+            return Failure;
         }
     }
 }

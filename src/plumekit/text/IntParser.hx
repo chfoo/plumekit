@@ -1,15 +1,17 @@
 package plumekit.text;
 
-import plumekit.Exception.ValueException;
+import plumekit.Exception;
 
 
 class IntParser {
-    public static function parseInt(text:String, radix:Int):Int {
+    static inline var MAX_INT_VALUE:UInt = 0xffffffff;
+
+    public static function parseInt(text:String, radix:Int):UInt {
         if (text.length < 1) {
             throw new ValueException("Empty string");
         }
 
-        var result = 0;
+        var result:UInt = 0;
 
         for (index in 0...text.length) {
             var charInt = charCodeToInt(text.charCodeAt(index));
@@ -18,7 +20,13 @@ class IntParser {
                 throw new ValueException("Character outside radix range");
             }
 
-            result += Std.int(charInt * Math.pow(radix, text.length - 1 - index));
+            var expResult = charInt * Math.pow(radix, text.length - 1 - index);
+
+            if (result + expResult > MAX_INT_VALUE) {
+                throw new NumericalRangeException("Number too large");
+            }
+
+            result += Std.int(expResult);
         }
 
         return result;

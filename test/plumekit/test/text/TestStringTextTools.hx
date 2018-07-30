@@ -47,6 +47,7 @@ class TestStringTextTools {
         Assert.equals("a", "ae".trimPredicate(isLowercaseE));
         Assert.equals("a", "ea".trimPredicate(isLowercaseE));
         Assert.equals("a", "eae".trimPredicate(isLowercaseE));
+        Assert.equals("", "eee".trimPredicate(isLowercaseE));
         Assert.equals("abc", "eeabcee".trimPredicate(isLowercaseE));
         Assert.equals("abcdef", "abcdef".trimPredicate(isLowercaseE));
         Assert.equals("abcedef", "eeabcedefee".trimPredicate(isLowercaseE));

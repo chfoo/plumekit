@@ -49,7 +49,7 @@ class IPv6Serializer {
         var zeroCount = 0;
 
         for (index in 0...address.length) {
-            var reverseIndex = address.length - index;
+            var reverseIndex = address.length - 1 - index;
             var piece = address.get(reverseIndex);
 
             if (piece == 0) {

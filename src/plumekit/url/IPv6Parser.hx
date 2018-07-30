@@ -63,7 +63,7 @@ class IPv6Parser {
                     return Failure;
                 }
 
-                pointer.increment(-1);
+                pointer.increment(-length);
 
                 if (pieceIndex > 6) {
                     validationError.set();
@@ -126,11 +126,11 @@ class IPv6Parser {
             } else if (pointer.c == ":".code) {
                 pointer.increment(1);
 
-                if (pointer.c == INT_NULL) {
+                if (pointer.isEOF()) {
                     validationError.set();
                     return Failure;
                 }
-            } else if (pointer.c != INT_NULL) {
+            } else if (!pointer.isEOF()) {
                 validationError.set();
                 return Failure;
             }

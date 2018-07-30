@@ -98,4 +98,31 @@ class TestBasicURLParser {
                 Assert.equals(4, url.path.length);
         }
     }
+
+    public function testWithBase() {
+        var baseParser = new BasicURLParser("http://example.com");
+        var baseResult = baseParser.parse();
+        var baseURL;
+
+        switch baseResult {
+            case Failure:
+                Assert.fail();
+                return;
+            case Result(url_):
+                baseURL = url_;
+        }
+
+        var parser = new BasicURLParser("/images/", baseURL);
+        var result = parser.parse();
+
+        switch result {
+            case Failure:
+                Assert.fail();
+            case Result(url):
+                Assert.equals("http", url.scheme);
+                Assert.equals(2, url.path.length);
+                Assert.equals("images", url.path.get(0));
+                Assert.equals("", url.path.get(1));
+        }
+    }
 }

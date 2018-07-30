@@ -47,6 +47,7 @@ enum StateMachineResult {
     Failure;
     Terminate;
     Continue;
+    StartOver;
 }
 
 
@@ -138,6 +139,8 @@ class BasicURLParser {
                     return Failure;
                 case Terminate:
                     return Result(url);
+                case StartOver:
+                    pointer.reset();
                 case Continue:
                     // pass
             }
@@ -145,7 +148,10 @@ class BasicURLParser {
             if (pointer.isEOF()) {
                 break;
             } else {
-                pointer.increment(1);
+                switch result {
+                    case Continue: pointer.increment(1);
+                    default: // pass
+                }
             }
         }
 
@@ -222,7 +228,7 @@ class BasicURLParser {
         } else if (stateOverride == null) {
             buffer.clear();
             state = NoSchemeState;
-            pointer.reset();
+            return StartOver;
         } else {
             validationError.set();
             return Failure;
@@ -276,6 +282,8 @@ class BasicURLParser {
             pointer.increment(1);
         } else {
             url.cannotBeABaseURL = true;
+            url.path.push("");
+            state = CannotBeABaseURLPathState;
         }
 
         return Continue;
@@ -722,19 +730,19 @@ class BasicURLParser {
     function runPathState() {
         if ((pointer.isEOF() || pointer.c == "/".code)
                 || (url.isSpecial() && pointer.c == "\\".code)
-                || (stateOverride == null && (pointer.c == "?".code || pointer.c == "#".code))) {
+                || (stateOverride == null && pointer.c.isAnyCodePoint("?#"))) {
             if (url.isSpecial() && pointer.c == "\\".code) {
                 validationError.set();
             }
 
             if (buffer.toString().isDoubleDotPathSegment()) {
-                url.path.pop();
+                url.shortenPath();
 
-                if (pointer.c != "/".code || !url.isSpecial() && pointer.c != "\\".code) {
+                if (pointer.c != "/".code && !url.isSpecial() && pointer.c != "\\".code) {
                     url.path.push("");
                 }
             } else if (buffer.toString().isSingleDotPathSegment()
-                    && pointer.c != "/".code || !url.isSpecial() && pointer.c != "\\".code) {
+                    && pointer.c != "/".code && !url.isSpecial() && pointer.c != "\\".code) {
                 url.path.push("");
             } else if (!buffer.toString().isSingleDotPathSegment()) {
                 if (url.scheme == "file" && url.path.isEmpty()

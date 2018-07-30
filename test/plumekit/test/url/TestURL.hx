@@ -32,14 +32,29 @@ class TestURL {
         var input = doc.get("input");
         var base = doc.get("base");
         var expectedFailure:Bool = doc.exists("failure") ? doc.get("failure") : false;
-        var url = null;
 
-        trace('Test URL=$input base=$base Expected failure=$expectedFailure');
+        if (expectedFailure) {
+            var url = null;
+
+            Assert.raises(function () {
+                url = new URL(input, base);
+            }, ValueException);
+
+            if (url != null) {
+                trace('Test URL=$input base=$base Expected failure, got=$url');
+            }
+
+            return;
+        }
+
+        var url;
 
         try {
             url = new URL(input, base);
         } catch (exception:ValueException) {
-            trace(' (failure)');
+            var expectedHref = doc.get("href");
+            trace('Test URL=$input base=$base Expected $expectedHref, got failure');
+            throw exception;
         }
 
         var expectedProtocol = doc.get("protocol");
@@ -55,17 +70,15 @@ class TestURL {
             + '$expectedPassword,$expectedHostname,$expectedPort,'
             + '$expectedPathname,$expectedSearch,$expectedHash';
 
-        Assert.equals(expectedFailure, url == null);
-
-        if (url == null) {
-            return;
-        }
-
         var outputString = '${url.protocol},${url.username},${url.password},'
             + '${url.hostname},${url.port},'
             + '${url.pathname},${url.search},${url.hash}';
 
-        trace('  Expected=$expectedString Output=$outputString');
+        if (expectedString != outputString) {
+            trace('Test URL=$input base=$base Expected failure=$expectedFailure');
+            trace('  Expected=$expectedString Output=$outputString');
+        }
+
         Assert.equals(expectedString, outputString);
     }
 }

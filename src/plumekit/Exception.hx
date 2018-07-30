@@ -26,5 +26,9 @@ class ValueException extends Exception {
 }
 
 
+class NumericalRangeException extends ValueException {
+}
+
+
 class NotImplementedException extends Exception {
 }

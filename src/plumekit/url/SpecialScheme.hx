@@ -13,7 +13,9 @@ class SpecialScheme {
         set.add("file");
         set.add("gopher");
         set.add("http");
-        set.add("ftp");
+        set.add("https");
+        set.add("ws");
+        set.add("wss");
         return set;
     }();
 

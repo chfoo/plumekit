@@ -49,7 +49,11 @@ class StringTextTools {
             index += 1;
         }
 
-        return text.uSubstring(firstNonMatch, lastNonMatch + 1);
+        if (firstNonMatch < 0) {
+            return "";
+        } else {
+            return text.uSubstring(firstNonMatch, lastNonMatch + 1);
+        }
     }
 
     public static function replacePredicate(text:String,

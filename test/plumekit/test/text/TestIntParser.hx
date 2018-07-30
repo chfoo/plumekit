@@ -51,4 +51,9 @@ class TestIntParser {
         Assert.raises(IntParser.parseInt.bind("-1", 8), ValueException);
         Assert.raises(IntParser.parseInt.bind("8", 8), ValueException);
     }
+
+    public function testRange() {
+        Assert.equals(0xfffffff, IntParser.parseInt("fffffff", 8));
+        Assert.raises(IntParser.parseInt.bind("10000000", 8), ValueException);
+    }
 }

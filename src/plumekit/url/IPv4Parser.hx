@@ -3,7 +3,7 @@ package plumekit.url;
 
 enum IPv4ParserResult {
     Hostname(hostname:String);
-    IPv4(ipv4:Int);
+    IPv4(ipv4:UInt);
     Failure;
 }
 
@@ -21,7 +21,7 @@ class IPv4Parser {
         if (parts.length > 0 && parts[parts.length - 1] == "") {
             validationErrorFlag = true;
 
-            if (parts.length > 1) {
+            if (parts.length > 0) {
                 parts.pop();
             }
         }
@@ -30,7 +30,7 @@ class IPv4Parser {
             return Hostname(input);
         }
 
-        var numbers = [];
+        var numbers:Array<Float> = [];
 
         for (part in parts) {
             if (part == "") {
@@ -42,10 +42,12 @@ class IPv4Parser {
             validationErrorFlag = validationErrorFlagWrapper.value;
 
             switch (n) {
-                case None:
+                case Failure:
                     return Hostname(input);
-                case Some(value):
+                case Result(value):
                     numbers.push(value);
+                case Overflow:
+                    numbers.push(Math.POSITIVE_INFINITY);
             }
         }
 
@@ -65,12 +67,13 @@ class IPv4Parser {
             }
         }
 
-        if (numbers[numbers.length - 1] > Math.pow(256, 5 - numbers.length)) {
+        if (numbers[numbers.length - 1] >= Math.pow(256, 5 - numbers.length)) {
             validationError.set();
             return Failure;
         }
 
-        var ipv4 = numbers[numbers.length - 1];
+        var ipv4 = Std.int(numbers[numbers.length - 1]);
+        numbers.pop();
         var counter = 0;
 
         for (n in numbers) {
