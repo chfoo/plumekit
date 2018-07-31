@@ -19,6 +19,8 @@ Package summary:
 | `plumekit.stream` | Stream reading and writing abstractions |
 | `plumekit.text` | Text processing utilities |
 | `plumekit.text.codec` | Text encoder/decoders (WHATWG encoding living standard, June 2018) |
+| `plumekit.text.idna` | IDNA and Punycode encoding and decoding |
+| `plumekit.text.unicode` | Unicode processing |
 | `plumekit.url` | URL parser (WHATWG URL living standard, June 2018) |
 
 

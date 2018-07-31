@@ -646,6 +646,7 @@ class BasicURLParser {
             }
 
             state = PathState;
+            pointer.increment(-1);
         }
 
         return Continue;
@@ -676,7 +677,7 @@ class BasicURLParser {
                 }
 
                 switch host {
-                    case Host.OpaqueHost(hostString):
+                    case Host.Domain(hostString) | Host.OpaqueHost(hostString):
                         if (hostString == "localhost") {
                             host = Host.EmptyHost;
                         }
@@ -728,21 +729,28 @@ class BasicURLParser {
     }
 
     function runPathState() {
-        if ((pointer.isEOF() || pointer.c == "/".code)
-                || (url.isSpecial() && pointer.c == "\\".code)
-                || (stateOverride == null && pointer.c.isAnyCodePoint("?#"))) {
-            if (url.isSpecial() && pointer.c == "\\".code) {
+        var isEOF = pointer.isEOF();
+        var isSlash = pointer.c == "/".code;
+        var isSpecialAndBackSlash = url.isSpecial() && pointer.c == "\\".code;
+        var isNotStateOverrideAndQueryOrFragment =
+            stateOverride == null && pointer.c.isAnyCodePoint("?#");
+
+        if (isEOF
+                || isSlash
+                || isSpecialAndBackSlash
+                || isNotStateOverrideAndQueryOrFragment) {
+            if (isSpecialAndBackSlash) {
                 validationError.set();
             }
 
             if (buffer.toString().isDoubleDotPathSegment()) {
                 url.shortenPath();
 
-                if (pointer.c != "/".code && !url.isSpecial() && pointer.c != "\\".code) {
+                if (!isSlash && !isSpecialAndBackSlash) {
                     url.path.push("");
                 }
             } else if (buffer.toString().isSingleDotPathSegment()
-                    && pointer.c != "/".code && !url.isSpecial() && pointer.c != "\\".code) {
+                    && !isSlash && !isNotStateOverrideAndQueryOrFragment) {
                 url.path.push("");
             } else if (!buffer.toString().isSingleDotPathSegment()) {
                 if (url.scheme == "file" && url.path.isEmpty()
@@ -783,7 +791,7 @@ class BasicURLParser {
             }
 
             if (pointer.c == "%".code && !pointer.remaining.startsWithTwoHexDigits()) {
-                    validationError.set();
+                validationError.set();
             }
 
             buffer.appendString(

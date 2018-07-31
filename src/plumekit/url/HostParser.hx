@@ -1,7 +1,6 @@
 package plumekit.url;
 
 import plumekit.text.codec.SpecHook;
-import plumekit.text.codec.Registry;
 import plumekit.url.Host;
 import plumekit.url.IPv4Parser;
 import plumekit.url.ParserResult;

@@ -12,7 +12,6 @@ class TestURL {
     public function new() {
     }
 
-    @Ignored("WIP")
     public function testParseWPT() {
         var jsonRes = Resource.getString("wpt/urltestdata.json");
         var jsonDoc:Array<Any> = Json.parse(jsonRes);

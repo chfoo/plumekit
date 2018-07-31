@@ -49,8 +49,8 @@ class PercentEncoder {
             if (byte != "%".code) {
                 outputBuf.addByte(byte);
             } else if (byte == "%".code
-                    && (!byteNext.isASCIIAlphanumeric()
-                    || !byteNext2.isASCIIAlphanumeric())) {
+                    && (!byteNext.isASCIIHexDigit()
+                    || !byteNext2.isASCIIHexDigit())) {
                 outputBuf.addByte(byte);
             } else {
                 var bytePoint = IntParser.charCodeToInt(byteNext) << 4

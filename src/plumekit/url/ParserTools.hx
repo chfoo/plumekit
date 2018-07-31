@@ -40,7 +40,13 @@ class ParserTools {
     }
 
     public static function isURLCodePoint(codePoint:Int):Bool {
-        return CodePointTools.isASCIIAlphanumeric(codePoint);
+        return (
+                CodePointTools.isASCIIAlphanumeric(codePoint)
+                || isAnyCodePoint(codePoint, "!$&'()*+,-./:;=?@_~")
+                || CodePointTools.isInRange(codePoint, 0xa0, 0x10fffd)
+            )
+            && !CodePointTools.isSurrogate(codePoint)
+            && !CodePointTools.isNoncharacter(codePoint);
     }
 
     public static function startsWithTwoHexDigits(text:String):Bool {
