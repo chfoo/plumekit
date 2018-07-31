@@ -1,7 +1,6 @@
 package plumekit.internal;
 
 import haxe.Constraints.IMap;
-import haxe.io.Bytes;
 import haxe.Json;
 import haxe.Resource;
 import org.msgpack.MsgPack;

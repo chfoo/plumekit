@@ -70,4 +70,14 @@ class StringTextTools {
 
         return buffer.toString();
     }
+
+    public static function isASCII(text:String):Bool {
+        for (codePoint in text.uIterator()) {
+            if (!CodePointTools.isASCII(codePoint)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

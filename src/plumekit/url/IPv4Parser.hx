@@ -78,15 +78,16 @@ class IPv4Parser {
             return Failure;
         }
 
-        var ipv4 = numbers[numbers.length - 1].toInt();
+        var ipv4 = numbers[numbers.length - 1];
         numbers.pop();
         var counter = 0;
 
         for (n in numbers) {
-            ipv4 += Std.int(n.toInt() * Math.pow(256, 3 - counter));
+            ipv4 += n * Int64.fromFloat(Math.pow(256, 3 - counter));
             counter += 1;
         }
 
-        return IPv4(ipv4);
+        Debug.assert(ipv4.high == 0, ipv4);
+        return IPv4(ipv4.low);
     }
 }
