@@ -74,7 +74,11 @@ class EncodingsResource {
 
     public static function getEncodings():Any {
         var data = Resource.getBytes(ENCODINGS_NAME);
-        Debug.assert(data != null);
+
+        if (data == null) {
+            throw "plumekit embedded resource missing ";
+        }
+
         return MsgPack.decode(data);
     }
 
