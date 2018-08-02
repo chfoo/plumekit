@@ -8,6 +8,7 @@ class ResourceSetup {
         #elseif macro
         EncodingsResource.embedEncodings();
         EncodingsResource.embedIndexes();
+        UnicodeResource.embedUnicodeData();
         UnicodeResource.embedIDNA();
         #end
     }
