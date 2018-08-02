@@ -1,6 +1,9 @@
 package plumekit.text.idna;
 
+import plumekit.text.unicode.UnicodeDB;
+import plumekit.text.unicode.PropertyValues;
 import plumekit.Exception.ValueException;
+
 using unifill.Unifill;
 using StringTools;
 
@@ -27,6 +30,7 @@ class Processor {
     var labels:Array<String>;
     var flags:ProcessorFlags;
     var mappingTable:MappingTable;
+    var isBidiDomainName:Bool = false;
 
     public function new(domainName:String, flags:ProcessorFlags) {
         this.domainName = domainName;
@@ -93,24 +97,76 @@ class Processor {
                     continue;
                 }
             }
+        }
 
+        checkIsBidiDomainName();
+
+        for (label in labels) {
             validateLabel(label);
+
+            if (hasError) {
+                break;
+            }
+        }
+    }
+
+    function checkIsBidiDomainName() {
+        for (label in labels) {
+            for (codePoint in label.uIterator()) {
+                var properties = UnicodeDB.getCharacterProperties(codePoint);
+                var bidiClass = properties.bidiClass;
+
+                if (bidiClass == BidiClass.RightToLeft
+                        || bidiClass == BidiClass.ArabicLetter
+                        || bidiClass == BidiClass.ArabicNumber) {
+                    isBidiDomainName = true;
+                    return;
+                }
+            }
         }
     }
 
     function validateLabel(label:String) {
         // TODO: Unicode Normalization Form NFC
-        // TODO: begin with a combining mark
 
-        var invalid =
-            (flags.checkHyphens && (label.uIndexOf("-") == 2 || label.uIndexOf("-", 3) == 3))
-            || label.indexOf(".") >= 0;
+        if (flags.checkHyphens) {
+            validateCheckHyphens(label);
+        }
 
-        if (invalid) {
-            hasError = true;
+        hasError = hasError || label.indexOf(".") >= 0;
+
+        validateBeginCombiningMark(label);
+        validateCodePointStatus(label);
+
+        if (hasError) {
             return;
         }
 
+        if (flags.checkJoiners) {
+            // TODO:
+        }
+
+        if (flags.checkBidi && isBidiDomainName) {
+            validateBidi(label);
+        }
+    }
+
+    function validateCheckHyphens(label:String) {
+        hasError = hasError || label.uIndexOf("-") == 2 || label.uIndexOf("-", 3) == 3;
+    }
+
+    function validateBeginCombiningMark(label:String) {
+        if (label == "") {
+            return;
+        }
+        var codePoint = label.uCharCodeAt(0);
+        var properties = UnicodeDB.getCharacterProperties(codePoint);
+
+        hasError = hasError
+            || properties.generalCategory.startsWith(GeneralCategory.Mark);
+    }
+
+    function validateCodePointStatus(label:String) {
         for (codePoint in label.uIterator()) {
             if (flags.transitionalProcessing) {
                 if (mappingTable.get(codePoint) != Valid) {
@@ -126,13 +182,62 @@ class Processor {
                 }
             }
         }
+    }
 
-        if (flags.checkJoiners) {
-            // TODO:
+    function validateBidi(label:String) {
+        if (label == "") {
+            return;
         }
 
-        if (flags.checkBidi) {
-            // TODO:
+        // RFC 5893 implementation
+        var firstChar = label.uCharCodeAt(0);
+        var firstCharProp = UnicodeDB.getCharacterProperties(firstChar);
+
+        if (firstCharProp.bidiClass == BidiClass.LeftToRight) {
+            validateBidiLTR(label);
+        } else if (firstCharProp.bidiClass == BidiClass.RightToLeft
+                || firstCharProp.bidiClass == BidiClass.ArabicLetter) {
+            validateBidiRTL(label);
+        } else {
+            hasError = true;
         }
+    }
+
+    function validateBidiLTR(label:String) {
+        var pattern = ~/(L,|EN,|ES,|CS,|ET,|ON,|BN,|NSM,)*(L,|EN,)(NSM,)*/;
+        var tokens = stringToBidiTokens(label);
+
+        if (!pattern.match(tokens)) {
+            hasError = true;
+        }
+    }
+
+    function validateBidiRTL(label:String) {
+        var pattern = ~/(R,|AL,|AN,|EN,|ES,|CS,|ET,|ON,|BN,|NSM,)*(R,|AL,|EN,|AN,)(NSM,)*/;
+        var tokens = stringToBidiTokens(label);
+
+        if (!pattern.match(tokens)) {
+            hasError = true;
+            return;
+        }
+
+        var europeanNumberPresent = tokens.indexOf("EN,") >= 0;
+        var arabicNumberPresent = tokens.indexOf("AN,") >= 0;
+
+        if (europeanNumberPresent && arabicNumberPresent) {
+            hasError = true;
+        }
+    }
+
+    static function stringToBidiTokens(text:String):String {
+        var classes = [];
+
+        for (codePoint in text.uIterator()) {
+            var properties = UnicodeDB.getCharacterProperties(codePoint);
+            var bidiClass = properties.bidiClass;
+            classes.push(bidiClass);
+        }
+
+        return classes.join(",") + ",";
     }
 }
