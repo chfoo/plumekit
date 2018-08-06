@@ -61,6 +61,48 @@ class UCDLineConverter implements TypeConverter<UCDLine> {
     }
 
     public function toBytes(input:UCDLine):Bytes {
+        return toBytesSimple(input);
+    }
+
+    function toBytesSimple(input:UCDLine):Bytes {
+        var length = 4 // code point
+            + 4 // end code point
+            + 1; // field array length
+
+        for (field in input.fields) {
+            length += 1 // string length
+                + field.length; // assume ASCII string
+        }
+
+        var bytes = Bytes.alloc(length);
+
+        bytes.setInt32(0, input.codePoint);
+
+        switch input.endCodePoint {
+            case Some(endCodePoint):
+                bytes.setInt32(3, endCodePoint);
+            case None:
+                bytes.setInt32(3, -1);
+        }
+
+        bytes.set(7, input.fields.length);
+        var offset = 8;
+
+        for (field in input.fields) {
+            bytes.set(offset, field.length);
+            offset += 1;
+
+            for (charIndex in 0...field.length) {
+                bytes.set(offset + charIndex, field.charCodeAt(charIndex));
+            }
+
+            offset += field.length;
+        }
+
+        return bytes;
+    }
+
+    function toBytesMsgPack(input:UCDLine):Bytes {
         switch input.endCodePoint {
             case Some(endCodePoint):
                 var serialized:SerializedUCDLineRange = {
@@ -80,6 +122,41 @@ class UCDLineConverter implements TypeConverter<UCDLine> {
     }
 
     public function fromBytes(input:Bytes):UCDLine {
+        return fromBytesSimple(input);
+    }
+
+    function fromBytesSimple(input:Bytes):UCDLine {
+        var ucdLine = new UCDLine();
+        ucdLine.codePoint = input.getInt32(0);
+
+        var endCodePoint = input.getInt32(3);
+
+        if (endCodePoint >= 0) {
+            ucdLine.endCodePoint = Some(endCodePoint);
+        } else {
+            ucdLine.endCodePoint = None;
+        }
+
+        var numFields = input.get(7);
+        var offset = 8;
+
+        for (fieldIndex in 0...numFields) {
+            var fieldLength = input.get(offset);
+            offset += 1;
+            var fieldBuf = new StringBuf();
+
+            for (charIndex in 0...fieldLength) {
+                fieldBuf.addChar(input.get(offset + charIndex));
+            }
+
+            ucdLine.fields.push(fieldBuf.toString());
+            offset += fieldLength;
+        }
+
+        return ucdLine;
+    }
+
+    function fromBytesMsgPack(input:Bytes):UCDLine {
         var parsed:Any = MsgPack.decode(input);
         var doc:DynamicAccess<Any> = parsed;
         var ucdLine = new UCDLine();
