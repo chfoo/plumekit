@@ -19,11 +19,18 @@ enum MappingTableStatus {
 
 class MappingTable {
     var useSTD3ASCIIRules:Bool;
-    var database:Database;
-    var cursor:CursorAdapter<Int,UCDLine>;
+    static var database:Database;
+    static var cursor:CursorAdapter<Int,UCDLine>;
 
     public function new(useSTD3ASCIIRules:Bool) {
         this.useSTD3ASCIIRules = useSTD3ASCIIRules;
+
+        if (database == null) {
+            initDatabase();
+        }
+    }
+
+    function initDatabase() {
         database = UnicodeResource.getIDNAMappingTable();
         cursor = database.ucdLineCursor();
     }

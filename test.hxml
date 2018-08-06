@@ -5,5 +5,6 @@ resources.hxml
 -lib utest
 -resource test/samples/UTF-8-test.txt@test/samples/UTF-8-test.txt
 -resource lib/wpt_cherrypick/url/resources/urltestdata.json@wpt/urltestdata.json
+-D resdb-js-optimize-page-store
 -debug
 -main plumekit.TestAll
