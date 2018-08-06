@@ -1,8 +1,9 @@
 package plumekit.internal;
 
-import resdb.ResourceHelper;
 import resdb.Database;
 import resdb.PagePacker;
+import resdb.store.ResourceHelper;
+import resdb.store.ResourcePageStore;
 #if macro
 import plumekit.text.unicode.UCDFileParser;
 import haxe.macro.Context;
@@ -55,10 +56,10 @@ class UnicodeResource {
     #end
 
     public static function getUnicodeDataTable():Database {
-        return ResourceHelper.getDatabase({name: DATA_TABLE_NAME });
+        return ResourcePageStore.getDatabase({name: DATA_TABLE_NAME });
     }
 
     public static function getIDNAMappingTable():Database {
-        return ResourceHelper.getDatabase({name: IDNA_TABLE_NAME });
+        return ResourcePageStore.getDatabase({name: IDNA_TABLE_NAME });
     }
 }

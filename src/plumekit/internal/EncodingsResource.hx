@@ -6,7 +6,8 @@ import haxe.Resource;
 import org.msgpack.MsgPack;
 import resdb.Database;
 import resdb.PagePacker;
-import resdb.ResourceHelper;
+import resdb.store.ResourceHelper;
+import resdb.store.ResourcePageStore;
 
 #if macro
 import haxe.macro.Context;
@@ -83,7 +84,7 @@ class EncodingsResource {
     }
 
     public static function getIndex(encodingName:String):Database {
-        return ResourceHelper.getDatabase(
+        return ResourcePageStore.getDatabase(
             {name: '$INDEXES_PREFIX/$encodingName' });
     }
 }
