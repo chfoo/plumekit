@@ -69,3 +69,29 @@ abstract BidiClass(String) to String {
     var FirstStrongIsolate = "FSI";
     var PopDirectionalIsolate = "PDI";
 }
+
+
+@:enum
+abstract CanonicalCombiningClass(Int) to Int {
+    var NotReordered = 0;
+    var Overlay = 1;
+    var Nukta = 7;
+    var KanaVoicing = 8;
+    var Virama = 9;
+    var Ccc10 = 10;
+    var Attached_Below_Left = 200;
+    var Attached_Below = 202;
+    var Attached_Above = 214;
+    var Attached_Above_Right = 216;
+    var BelowLeft = 218;
+    var Below = 220;
+    var BelowRight = 222;
+    var Left = 224;
+    var Right = 226;
+    var AboveLeft = 228;
+    var Above = 230;
+    var AboveRight = 232;
+    var DoubleBelow = 233;
+    var DoubleAbove = 234;
+    var IotaSubscript = 240;
+}

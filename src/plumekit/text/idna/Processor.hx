@@ -6,6 +6,7 @@ import plumekit.Exception.ValueException;
 
 using unifill.Unifill;
 using StringTools;
+using plumekit.text.CodePointTools;
 
 
 @:structInit
@@ -143,7 +144,7 @@ class Processor {
         }
 
         if (flags.checkJoiners) {
-            // TODO:
+            validateJoiners(label);
         }
 
         if (flags.checkBidi && isBidiDomainName) {
@@ -182,6 +183,131 @@ class Processor {
                 }
             }
         }
+    }
+
+    function validateJoiners(label:String) {
+        var previousCodePoint = -1;
+        var katakanaMiddleDotChecked = false;
+        var hasArabicIndicDigits = false;
+        var hasExtendedArabicIndicDigits = false;
+        var index = 0;
+
+        for (codePoint in (label + " ").uIterator()) {
+            switch (codePoint:Int) {
+                case 0x200c: // Zero width non joiner
+                    if (getCombiningClass(previousCodePoint) == CanonicalCombiningClass.Virama) {
+                        // ok
+                    } else {
+                        validateZeroWidthNonJoiner(index, label);
+                    }
+                case 0x200d: // Zero width joiner
+                    if (getCombiningClass(previousCodePoint) != CanonicalCombiningClass.Virama) {
+                        hasError = true;
+                    }
+                case 0x00b7: // Middle dot
+                    if (previousCodePoint != 0x006c) {
+                        hasError = true;
+                    }
+                case 0x05f3 | 0x05f4: // Hebrew punctuation geresh, gershayim
+                    if (getScript(previousCodePoint) != "Hebrew") {
+                        hasError = true;
+                    }
+                case 0x30fb: // Katakana middle dot
+                    if (!katakanaMiddleDotChecked) {
+                        validateKatakanaMiddleDot(label);
+                        katakanaMiddleDotChecked = true;
+                    }
+            }
+
+            switch previousCodePoint {
+                case 0x00b7: // Middle dot
+                    if (codePoint != 0x006c) {
+                        hasError = true;
+                    }
+                case 0x0375: // Greek lower numerical sign (keraia)
+                    if (getScript(codePoint) != "Greek") {
+                        hasError = true;
+                    }
+            }
+
+            if (codePoint.isInRange(0x0660, 0x0669)) {
+                hasArabicIndicDigits = true;
+            }
+
+            if (codePoint.isInRange(0x6f0, 0x06f9)) {
+                hasExtendedArabicIndicDigits = true;
+            }
+
+            if (hasArabicIndicDigits && hasExtendedArabicIndicDigits) {
+                hasError = true;
+            }
+
+            if (hasError) {
+                break;
+            }
+
+            index += 1;
+        }
+    }
+
+    function getCombiningClass(codePoint:Int):Int {
+        if (codePoint < 0) {
+            return 0;
+        }
+
+        var properties = UnicodeDB.getCharacterProperties(codePoint);
+        return properties.canonicalCombiningClass;
+    }
+
+    function getScript(codePoint:Int):String {
+        // TODO:
+        return "Unknown";
+    }
+
+    function getJoiningType(codePoint:Int):String {
+        // TODO:
+        return "";
+    }
+
+    function validateZeroWidthNonJoiner(index:Int, label:String) {
+        var beforePattern = ~/.*[LD]T*$/;
+        var afterPattern = ~/^T*[RD]/;
+
+        var beforeMatched = beforePattern.match(label.uSubstr(0, index));
+        var afterMatched = afterPattern.match(label.uSubstr(index + 1));
+
+        if (!beforeMatched || !afterMatched) {
+            hasError = true;
+        }
+    }
+
+    function stringToJoiningTypeTokens(label:String):String {
+        var buf = new StringBuf();
+
+        for (codePoint in label.uIterator()) {
+            if (codePoint == 0x200c) {
+                buf.uAddChar(codePoint);
+            } else {
+                buf.add(getJoiningType(codePoint));
+            }
+        }
+
+        return buf.toString();
+    }
+
+    function validateKatakanaMiddleDot(label:String) {
+        for (codePoint in label.uIterator()) {
+            var script = getScript(codePoint);
+
+            switch script {
+                case "Hiragana" | "Katakana" | "Han":
+                    return;  // at least one
+                default:
+                    continue;
+            }
+        }
+
+        hasError = true;
     }
 
     function validateBidi(label:String) {

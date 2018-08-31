@@ -20,4 +20,6 @@ class TestPunycode {
             "\u{4ED6}\u{4EEC}\u{4E3A}\u{4EC0}\u{4E48}\u{4E0D}\u{8BF4}\u{4E2D}\u{6587}");
         Assert.equals("ihqwcrb4cv8a8dqg056pqjye", result);
     }
+
+    // TODO: add validation tests
 }
