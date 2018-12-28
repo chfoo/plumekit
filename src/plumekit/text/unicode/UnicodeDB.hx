@@ -11,29 +11,26 @@ using StringTools;
 
 
 class UnicodeDB {
-    static var _dataDatabase:Database;
-    static var _dataCursor:CursorAdapter<Int,UCDLine>;
+    static var table:Table;
 
-    static function getDataCursor():CursorAdapter<Int,UCDLine> {
-        if (_dataDatabase == null) {
-            _dataDatabase = UnicodeResource.getUnicodeDataTable();
-            _dataCursor = _dataDatabase.ucdLineCursor();
-        }
-
-        return _dataCursor;
+    static function initTable() {
+        table = new Table(UnicodeResource.getUnicodeDataTable);
     }
 
     public static function getCharacterProperties(codePoint:Int):CharacterProperties {
-        var cursor = getDataCursor();
-
-        switch cursor.find(codePoint) {
-            case None:
-                throw new Exception.ValueException("Not found");
-            case Some(key):
-                // pass
+        if (table == null) {
+            initTable();
         }
 
-        var ucdLine = cursor.value();
+        var ucdLine;
+
+        switch table.get(codePoint) {
+            case None:
+                throw new Exception.ValueException("Not found");
+            case Some(ucdLine_):
+                ucdLine = ucdLine_;
+        }
+
         var charProp = new CharacterProperties(codePoint);
 
         charProp.name = ucdLine.fields[0];

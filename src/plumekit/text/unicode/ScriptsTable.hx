@@ -1,41 +1,26 @@
 package plumekit.text.unicode;
 
-import resdb.Database;
-import resdb.adapter.CursorAdapter;
 import plumekit.internal.UnicodeResource;
-
-using plumekit.internal.UCDLineAdapter;
 
 
 class ScriptsTable {
-    static var database:Database;
-    static var cursor:CursorAdapter<Int,UCDLine>;
+    static var table:Table;
     static inline var DEFAULT = "Unknown";
 
-    static function initDatabase() {
-        database = UnicodeResource.getScriptsTable();
-        cursor = database.ucdLineCursor();
+    static function initTable() {
+        table = new Table(UnicodeResource.getScriptsTable);
     }
 
     public static function get(codePoint:Int):String {
-        if (database == null) {
-            initDatabase();
+        if (table == null) {
+            initTable();
         }
 
-        if (cursor.find(codePoint) == None) {
-            return DEFAULT;
-        }
-
-        var ucdLine = cursor.value();
-
-        switch ucdLine.endCodePoint {
-            case Some(endCodePoint):
-                if (codePoint > endCodePoint) {
-                    return DEFAULT;
-                }
+        switch table.get(codePoint) {
+            case Some(ucdLine):
+                return ucdLine.fields[0];
             case None:
-                // pass
+                return DEFAULT;
         }
-        return ucdLine.fields[0];
     }
 }
