@@ -20,11 +20,10 @@ class UnicodeResource {
     static inline var SCRIPTS_NAME = "unicode/Scripts";
 
     #if macro
-    public static function embedUnicodeData() {
-        var path = Context.resolvePath("../data/unicode_character_database/11.0.0/ucd/UnicodeData.txt");
+    static function embedTable(sourceDataPath:String, tableName:String) {
+        var path = Context.resolvePath(sourceDataPath);
         var parser = new UCDFileParser(File.read(path));
-
-        var packer = new PagePacker({ name: DATA_TABLE_NAME });
+        var packer = new PagePacker({ name: tableName });
 
         while (true) {
             switch parser.getLine() {
@@ -36,76 +35,42 @@ class UnicodeResource {
         }
 
         ResourceHelper.addResource(packer);
+    }
+
+    public static function embedUnicodeData() {
+        embedTable("../data/unicode_character_database/11.0.0/ucd/UnicodeData.txt", DATA_TABLE_NAME);
     }
 
     public static function embedIDNA() {
-        var path = Context.resolvePath("../data/unicode_character_database/idna/11.0.0/IdnaMappingTable.txt");
-        var parser = new UCDFileParser(File.read(path));
-
-        var packer = new PagePacker({ name: IDNA_TABLE_NAME });
-
-        while (true) {
-            switch parser.getLine() {
-                case Some(ucdLine):
-                    packer.ucdLineAddRecord(ucdLine);
-                case None:
-                    break;
-            }
-        }
-
-        ResourceHelper.addResource(packer);
+        embedTable("../data/unicode_character_database/idna/11.0.0/IdnaMappingTable.txt", IDNA_TABLE_NAME);
     }
 
     public static function embedDerivedJoiningType() {
-        var path = Context.resolvePath("../data/unicode_character_database/11.0.0/ucd/extracted/DerivedJoiningType.txt");
-        var parser = new UCDFileParser(File.read(path));
-
-        var packer = new PagePacker({ name: DERIVED_JOINING_TYPE_NAME });
-
-        while (true) {
-            switch parser.getLine() {
-                case Some(ucdLine):
-                    packer.ucdLineAddRecord(ucdLine);
-                case None:
-                    break;
-            }
-        }
-
-        ResourceHelper.addResource(packer);
+        embedTable("../data/unicode_character_database/11.0.0/ucd/extracted/DerivedJoiningType.txt", DERIVED_JOINING_TYPE_NAME);
     }
 
     public static function embedScripts() {
-        var path = Context.resolvePath("../data/unicode_character_database/11.0.0/ucd/Scripts.txt");
-        var parser = new UCDFileParser(File.read(path));
-
-        var packer = new PagePacker({ name: SCRIPTS_NAME });
-
-        while (true) {
-            switch parser.getLine() {
-                case Some(ucdLine):
-                    packer.ucdLineAddRecord(ucdLine);
-                case None:
-                    break;
-            }
-        }
-
-        ResourceHelper.addResource(packer);
+        embedTable("../data/unicode_character_database/11.0.0/ucd/Scripts.txt", SCRIPTS_NAME);
     }
     #end
 
+    static function getTable(name:String):Database {
+        return ResourcePageStore.getDatabase({name: name });
+    }
+
     public static function getUnicodeDataTable():Database {
-        return ResourcePageStore.getDatabase({name: DATA_TABLE_NAME });
+        return getTable(DATA_TABLE_NAME);
     }
 
     public static function getIDNAMappingTable():Database {
-        return ResourcePageStore.getDatabase({name: IDNA_TABLE_NAME });
+        return getTable(IDNA_TABLE_NAME);
     }
 
     public static function getDerivedJoiningTypeTable():Database {
-        return ResourcePageStore.getDatabase({name: DERIVED_JOINING_TYPE_NAME });
+        return getTable(DERIVED_JOINING_TYPE_NAME);
     }
 
     public static function getScriptsTable():Database {
-        return ResourcePageStore.getDatabase({name: SCRIPTS_NAME });
+        return getTable(SCRIPTS_NAME);
     }
 }
