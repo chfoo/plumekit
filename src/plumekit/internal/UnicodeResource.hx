@@ -75,7 +75,7 @@ class UnicodeResource {
     }
 
     public static function embedScripts() {
-        var path = Context.resolvePath("../data/unicode_character_database/idna/11.0.0/Scripts.txt");
+        var path = Context.resolvePath("../data/unicode_character_database/11.0.0/ucd/Scripts.txt");
         var parser = new UCDFileParser(File.read(path));
 
         var packer = new PagePacker({ name: SCRIPTS_NAME });
