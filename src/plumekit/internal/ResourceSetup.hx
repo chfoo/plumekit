@@ -10,6 +10,8 @@ class ResourceSetup {
         EncodingsResource.embedIndexes();
         UnicodeResource.embedUnicodeData();
         UnicodeResource.embedIDNA();
+        UnicodeResource.embedDerivedJoiningType();
+        UnicodeResource.embedScripts();
         #end
     }
 }

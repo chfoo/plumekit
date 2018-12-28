@@ -1,8 +1,10 @@
 package plumekit.text.idna;
 
-import plumekit.text.unicode.UnicodeDB;
-import plumekit.text.unicode.PropertyValues;
 import plumekit.Exception.ValueException;
+import plumekit.text.unicode.JoiningTypeTable;
+import plumekit.text.unicode.ScriptsTable;
+import plumekit.text.unicode.PropertyValues;
+import plumekit.text.unicode.UnicodeDB;
 
 using unifill.Unifill;
 using StringTools;
@@ -260,21 +262,21 @@ class Processor {
     }
 
     function getScript(codePoint:Int):String {
-        // TODO:
-        return "Unknown";
+        return ScriptsTable.get(codePoint);
     }
 
     function getJoiningType(codePoint:Int):String {
-        // TODO:
-        return "";
+        return JoiningTypeTable.get(codePoint);
     }
 
     function validateZeroWidthNonJoiner(index:Int, label:String) {
         var beforePattern = ~/.*[LD]T*$/;
         var afterPattern = ~/^T*[RD]/;
 
-        var beforeMatched = beforePattern.match(label.uSubstr(0, index));
-        var afterMatched = afterPattern.match(label.uSubstr(index + 1));
+        var joiningTypeTokens = stringToJoiningTypeTokens(label);
+
+        var beforeMatched = beforePattern.match(joiningTypeTokens.uSubstr(0, index));
+        var afterMatched = afterPattern.match(joiningTypeTokens.uSubstr(index + 1));
 
         if (!beforeMatched || !afterMatched) {
             hasError = true;
