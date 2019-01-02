@@ -7,7 +7,7 @@ import commonbox.ds.Set;
 
 
 class SpecialScheme {
-    public static var schemes(default, null):ImmutableSet<String> = function () {
+    public static var schemes(default, null):ImmutableSet<String> = {
         var set = new Set();
         set.add("ftp");
         set.add("file");
@@ -16,10 +16,10 @@ class SpecialScheme {
         set.add("https");
         set.add("ws");
         set.add("wss");
-        return set;
-    }();
+        set;
+    };
 
-    public static var defaultPorts(default, null):ImmutableMap<String,Int> = function () {
+    public static var defaultPorts(default, null):ImmutableMap<String,Int> = {
         var map = new AutoMap<String,Int>();
         map.set("ftp", 21);
         // map.set("file", );
@@ -28,6 +28,6 @@ class SpecialScheme {
         map.set("https", 443);
         map.set("ws", 80);
         map.set("wss", 443);
-        return map;
-    }();
+        map;
+    };
 }

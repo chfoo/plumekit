@@ -83,6 +83,10 @@ class NameValueRecord implements IMap<String,String> {
         return list.iterator();
     }
 
+    public function keyValueIterator():KeyValueIterator<String,String> {
+        return new NameValueIterator(data);
+    }
+
     public function toString():String {
         var buffer = new StringBuf();
 
@@ -114,5 +118,24 @@ class NameValueRecord implements IMap<String,String> {
         }
 
         return parser.parse(text);
+    }
+}
+
+
+private class NameValueIterator {
+    var data:Map<String,Array<String>>;
+
+    public function new(data:Map<String,Array<String>>) {
+        this.data = data;
+    }
+
+    public function hasNext():Bool {
+        // FIXME:
+        throw "Not yet implemented";
+    }
+
+    public function next():{key: String, value: String} {
+        // FIXME:
+        throw "Not yet implemented";
     }
 }

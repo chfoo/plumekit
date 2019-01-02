@@ -201,7 +201,9 @@ class Processor {
         var index = 0;
 
         for (codePoint in (label + " ").uIterator()) {
-            switch (codePoint:Int) {
+            var codePoint:Int = codePoint;
+
+            switch codePoint {
                 case 0x200c: // Zero width non joiner
                     if (getCombiningClass(previousCodePoint) == CanonicalCombiningClass.Virama) {
                         // ok
