@@ -2,8 +2,9 @@ package plumekit.text.idna;
 
 import plumekit.Exception.ValueException;
 import plumekit.text.unicode.JoiningTypeTable;
-import plumekit.text.unicode.ScriptsTable;
+import plumekit.text.unicode.Normalization;
 import plumekit.text.unicode.PropertyValues;
+import plumekit.text.unicode.ScriptsTable;
 import plumekit.text.unicode.UnicodeDB;
 
 using unifill.Unifill;
@@ -130,7 +131,12 @@ class Processor {
     }
 
     function validateLabel(label:String) {
-        // TODO: Unicode Normalization Form NFC
+        switch Normalization.isNFC(label) {
+            case No | Maybe:
+                // TODO: Unicode Normalization Form NFC
+            case Yes:
+                // pass
+        }
 
         if (flags.checkHyphens) {
             validateCheckHyphens(label);

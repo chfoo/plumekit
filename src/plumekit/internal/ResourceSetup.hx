@@ -12,6 +12,7 @@ class ResourceSetup {
         UnicodeResource.embedIDNA();
         UnicodeResource.embedDerivedJoiningType();
         UnicodeResource.embedScripts();
+        UnicodeResource.embedQuickCheck();
         #end
     }
 }
