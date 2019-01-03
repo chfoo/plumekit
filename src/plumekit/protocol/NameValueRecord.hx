@@ -83,9 +83,11 @@ class NameValueRecord implements IMap<String,String> {
         return list.iterator();
     }
 
+    #if (haxe_ver >= 4)
     public function keyValueIterator():KeyValueIterator<String,String> {
         return new NameValueIterator(data);
     }
+    #end
 
     public function toString():String {
         var buffer = new StringBuf();
